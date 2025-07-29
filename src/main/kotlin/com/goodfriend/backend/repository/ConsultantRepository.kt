@@ -1,13 +1,13 @@
 package com.goodfriend.backend.repository
 
-import com.goodfriend.backend.data.User
+import com.goodfriend.backend.data.Consultant
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 
 @Repository
-interface UserRepository : JpaRepository<User, Long> {
+interface ConsultantRepository : JpaRepository<Consultant, Long> {
 
-    fun findByPhone(phone: String): User? // ✅ 推荐使用 Kotlin 可空类型
+    fun findByPhone(phone: String): Consultant?
 
     fun existsByPhone(phone: String): Boolean
 }
