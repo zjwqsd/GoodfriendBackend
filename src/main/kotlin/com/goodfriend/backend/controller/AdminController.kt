@@ -1,24 +1,23 @@
 package com.goodfriend.backend.controller
 
-import com.goodfriend.backend.exception.ApiException
-import com.goodfriend.backend.repository.ConsultantRepository
+import com.goodfriend.backend.data.ApplicationStatus
+import com.goodfriend.backend.data.ConsultantApplication
+import com.goodfriend.backend.repository.ConsultantApplicationRepository
 import com.goodfriend.backend.security.annotation.AdminOnly
 import com.goodfriend.backend.service.AuthService
 import com.goodfriend.backend.service.ConsultantService
-import com.goodfriend.backend.service.FileStorageService
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
 import jakarta.validation.constraints.*
 import org.springframework.web.bind.annotation.*
-import org.springframework.web.multipart.MultipartFile
+import java.time.LocalDateTime
 
 @RestController
 @RequestMapping("/api/admin")
 class AdminController(
     private val consultantService: ConsultantService,
     private val authService: AuthService,
-    private val fileStorageService: FileStorageService,
-    private val consultantRepo: ConsultantRepository
+    private val applicationRepo: ConsultantApplicationRepository,
 ) {
 
     @PostMapping("/consultant/create")
@@ -34,22 +33,22 @@ class AdminController(
         return ResponseEntity.ok(token)
     }
 
-//    @PutMapping("/consultants/{id}/avatar")
-//    @AdminOnly
-//    fun updateAvatar(
-//        @PathVariable id: Long,
-//        @RequestParam file: MultipartFile
-//    ): ResponseEntity<Map<String, String>> {
-//        val consultant = consultantRepo.findById(id)
-//            .orElseThrow { ApiException(404, "咨询师不存在") }
-//
-//        val relativePath = fileStorageService.storeAvatar(file)
-//        consultant.avatar = relativePath
-//        consultantRepo.save(consultant)
-//
-//        return ResponseEntity.ok(mapOf("avatar" to relativePath))
-//    }
+    @PutMapping("/consultant/application/{id}/review")
+    @AdminOnly
+    fun reviewConsultantApplication(
+        @PathVariable id: Long,
+        @RequestParam approve: Boolean
+    ): ResponseEntity<Any> {
+        consultantService.reviewApplication(id, approve)
+        return ResponseEntity.ok().build()
+    }
 
+    @AdminOnly
+    @GetMapping("/consultant/applications")
+    fun getAllConsultantApplications(): ResponseEntity<List<ConsultantApplicationDTO>> {
+        val applications = applicationRepo.findAll()
+        return ResponseEntity.ok(applications.map { ConsultantApplicationDTO.from(it) })
+    }
 }
 
 data class CreateConsultantRequest(
@@ -72,3 +71,23 @@ data class AdminLoginRequest(
     @field:NotBlank(message = "管理员密码不能为空")
     val password: String
 )
+
+data class ConsultantApplicationDTO(
+    val id: Long,
+    val userId: Long,
+    val specialty: String,
+    val reason: String,
+    val status: ApplicationStatus,
+    val createdAt: LocalDateTime
+) {
+    companion object {
+        fun from(app: ConsultantApplication) = ConsultantApplicationDTO(
+            id = app.id,
+            userId = app.userId,
+            specialty = app.specialty,
+            reason = app.reason,
+            status = app.status,
+            createdAt = app.createdAt
+        )
+    }
+}

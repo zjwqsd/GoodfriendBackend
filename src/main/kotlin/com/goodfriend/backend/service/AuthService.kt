@@ -1,7 +1,7 @@
 package com.goodfriend.backend.service
 
 import com.goodfriend.backend.data.User
-import com.goodfriend.backend.data.Consultant
+//import com.goodfriend.backend.data.Consultant
 import com.goodfriend.backend.data.Gender
 import com.goodfriend.backend.exception.ApiException
 import com.goodfriend.backend.repository.UserRepository
@@ -65,7 +65,6 @@ class AuthService(
         }
     }
 
-    // ✅ 管理员登录（新加）
     fun loginAdmin(username: String, password: String): String {
         if (username != "admin" || password != adminPassword) {
             throw ApiException(401, "管理员账号或密码错误")

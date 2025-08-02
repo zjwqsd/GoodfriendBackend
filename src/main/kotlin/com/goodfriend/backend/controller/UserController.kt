@@ -7,11 +7,8 @@ import com.goodfriend.backend.service.UserService
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.PutMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
 import jakarta.validation.constraints.*
+import org.springframework.web.bind.annotation.*
 
 @RestController
 @RequestMapping("/api/user")
@@ -27,6 +24,24 @@ class UserController(
         userService.updateUserInfo(user.id, req.name, req.age, req.gender, req.region)
         return ResponseEntity.ok().build()
     }
+
+
+    @PostMapping("/consultant/apply")
+    @UserOnly
+    fun applyToConsultant(@RequestBody @Valid req: ConsultantApplicationRequest, request: HttpServletRequest): ResponseEntity<Void> {
+        val user = currentRoleService.getCurrentUser(request)
+        userService.submitConsultantApplication(user.id, req.specialty, req.reason)
+        return ResponseEntity.ok().build()
+    }
+
+    data class ConsultantApplicationRequest(
+        @field:NotBlank(message = "专长不能为空")
+        val specialty: String,
+
+        @field:NotBlank(message = "申请理由不能为空")
+        val reason: String
+    )
+
 }
 
 data class UpdateUserRequest(

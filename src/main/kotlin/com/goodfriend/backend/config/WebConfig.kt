@@ -14,7 +14,7 @@ class WebConfig(
         val basePath = Paths.get(fileStorageProperties.basePath).toAbsolutePath().toUri().toString()
         println("File storage base path: $basePath")
 
-        registry.addResourceHandler("/static/**") // 仅映射 covers 子目录
+        registry.addResourceHandler("/static/**")
             .addResourceLocations(basePath)
     }
 }

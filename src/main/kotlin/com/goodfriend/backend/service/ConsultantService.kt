@@ -1,16 +1,22 @@
 package com.goodfriend.backend.service
 
+import com.goodfriend.backend.data.ApplicationStatus
 import com.goodfriend.backend.data.Consultant
 import com.goodfriend.backend.data.Gender
 import com.goodfriend.backend.exception.ApiException
+import com.goodfriend.backend.repository.ConsultantApplicationRepository
 import com.goodfriend.backend.repository.ConsultantRepository
+import com.goodfriend.backend.repository.UserRepository
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
+import java.time.LocalDateTime
 
 @Service
 class ConsultantService(
+    private val userRepo: UserRepository,
     private val consultantRepo: ConsultantRepository,
-    private val passwordEncoder: PasswordEncoder
+    private val passwordEncoder: PasswordEncoder,
+    private val applicationRepo: ConsultantApplicationRepository,
 ) {
 
     fun createConsultantAccount(phone: String, password: String, name: String): Consultant {
@@ -40,5 +46,23 @@ class ConsultantService(
         location?.let { consultant.location = it }
         specialty?.let { consultant.specialty = it }
         consultantRepo.save(consultant)
+    }
+
+
+    fun reviewApplication(id: Long, approve: Boolean) {
+        val app = applicationRepo.findById(id).orElseThrow { ApiException(404, "申请不存在") }
+
+        if (app.status != ApplicationStatus.PENDING) {
+            throw ApiException(400, "申请已被处理")
+        }
+
+        app.status = if (approve) ApplicationStatus.APPROVED else ApplicationStatus.REJECTED
+        app.updatedAt = LocalDateTime.now()
+        applicationRepo.save(app)
+
+        if (approve) {
+            val user = userRepo.findById(app.userId).orElseThrow { ApiException(404, "用户不存在") }
+            createConsultantAccount(user.phone, user.password, user.name) // reuse 逻辑
+        }
     }
 }

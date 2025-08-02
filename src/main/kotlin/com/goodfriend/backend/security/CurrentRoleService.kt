@@ -28,9 +28,9 @@ class CurrentRoleService(
     fun getCurrentConsultant(request: HttpServletRequest): Consultant =
         consultantRepo.findById(getCurrentId(request)).orElseThrow { RuntimeException("咨询师不存在") }
 
-    fun getCurrentEntity(request: HttpServletRequest): Any = when (getCurrentRole(request)) {
-        Role.USER -> getCurrentUser(request)
-        Role.CONSULTANT -> getCurrentConsultant(request)
-        else -> throw RuntimeException("管理员不支持实体访问")
-    }
+//    fun getCurrentEntity(request: HttpServletRequest): Any = when (getCurrentRole(request)) {
+//        Role.USER -> getCurrentUser(request)
+//        Role.CONSULTANT -> getCurrentConsultant(request)
+//        else -> throw RuntimeException("管理员不支持实体访问")
+//    }
 }
