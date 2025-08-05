@@ -22,7 +22,7 @@ class AdminController(
 
     @PostMapping("/consultant/create")
     @AdminOnly
-    fun createConsultant(@RequestBody @Valid req: CreateConsultantRequest): ResponseEntity<Any> {
+    fun createConsultant(@RequestBody @Valid req: CreateConsultantRequest, @RequestHeader("Authorization") authHeader: String?): ResponseEntity<Any> {
         val consultant = consultantService.createConsultantAccount(req.phone, req.password, req.name)
         return ResponseEntity.ok(mapOf("id" to consultant.id))
     }
@@ -37,7 +37,8 @@ class AdminController(
     @AdminOnly
     fun reviewConsultantApplication(
         @PathVariable id: Long,
-        @RequestParam approve: Boolean
+        @RequestParam approve: Boolean,
+        @RequestHeader("Authorization") authHeader: String?
     ): ResponseEntity<Any> {
         consultantService.reviewApplication(id, approve)
         return ResponseEntity.ok().build()
@@ -45,7 +46,7 @@ class AdminController(
 
     @AdminOnly
     @GetMapping("/consultant/applications")
-    fun getAllConsultantApplications(): ResponseEntity<List<ConsultantApplicationDTO>> {
+    fun getAllConsultantApplications(@RequestHeader("Authorization") authHeader: String?): ResponseEntity<List<ConsultantApplicationDTO>> {
         val applications = applicationRepo.findAll()
         return ResponseEntity.ok(applications.map { ConsultantApplicationDTO.from(it) })
     }
@@ -75,6 +76,8 @@ data class AdminLoginRequest(
 data class ConsultantApplicationDTO(
     val id: Long,
     val userId: Long,
+    val name: String?,
+    val phone: String?,
     val specialty: String,
     val reason: String,
     val status: ApplicationStatus,
@@ -84,6 +87,8 @@ data class ConsultantApplicationDTO(
         fun from(app: ConsultantApplication) = ConsultantApplicationDTO(
             id = app.id,
             userId = app.userId,
+            name = app.name,
+            phone = app.phone,
             specialty = app.specialty,
             reason = app.reason,
             status = app.status,
@@ -91,3 +96,4 @@ data class ConsultantApplicationDTO(
         )
     }
 }
+

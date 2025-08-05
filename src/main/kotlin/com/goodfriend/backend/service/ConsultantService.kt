@@ -49,20 +49,38 @@ class ConsultantService(
     }
 
 
-    fun reviewApplication(id: Long, approve: Boolean) {
-        val app = applicationRepo.findById(id).orElseThrow { ApiException(404, "申请不存在") }
+    fun reviewApplication(applicationId: Long, approve: Boolean) {
+        val application = applicationRepo.findById(applicationId)
+            .orElseThrow { ApiException(404, "申请不存在") }
 
-        if (app.status != ApplicationStatus.PENDING) {
-            throw ApiException(400, "申请已被处理")
+        if (application.status != ApplicationStatus.PENDING) {
+            throw ApiException(400, "该申请已被处理")
         }
-
-        app.status = if (approve) ApplicationStatus.APPROVED else ApplicationStatus.REJECTED
-        app.updatedAt = LocalDateTime.now()
-        applicationRepo.save(app)
 
         if (approve) {
-            val user = userRepo.findById(app.userId).orElseThrow { ApiException(404, "用户不存在") }
-            createConsultantAccount(user.phone, user.password, user.name) // reuse 逻辑
+            // 从申请表构造 Consultant
+            val consultant = Consultant(
+                name = application.name,
+                phone = application.phone,
+                password = "NULL_PASSWORD",
+                level = "初级咨询师",
+                specialty = application.specialty,
+                gender = Gender.UNKNOWN,
+                location = "未知",
+                rating = 0.0,
+                avatar = "/images/avatars/default.jpg",
+                experienceYears = application.experienceYears,
+                consultationCount = 0,
+                pricePerHour = 0
+            )
+            consultantRepo.save(consultant)
+            application.status = ApplicationStatus.APPROVED
+        } else {
+            application.status = ApplicationStatus.REJECTED
         }
+
+        application.updatedAt = LocalDateTime.now()
+        applicationRepo.save(application)
     }
+
 }

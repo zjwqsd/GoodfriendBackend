@@ -22,7 +22,7 @@ class ConsultantController(
 
     @PutMapping("/update")
     @ConsultantOnly
-    fun updateConsultant(@RequestBody @Valid req: UpdateConsultantRequest, request: HttpServletRequest): ResponseEntity<Void> {
+    fun updateConsultant(@RequestBody @Valid req: UpdateConsultantRequest, request: HttpServletRequest, @RequestHeader("Authorization") authHeader: String?): ResponseEntity<Void> {
         val consultant = currentRoleService.getCurrentConsultant(request)
         consultantService.updateConsultantInfo(consultant.id, req.name, req.location, req.specialty)
         return ResponseEntity.ok().build()

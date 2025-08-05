@@ -2,6 +2,7 @@ package com.goodfriend.backend.data
 
 import jakarta.persistence.*
 import jakarta.validation.constraints.*
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 @Entity
@@ -12,32 +13,29 @@ data class User(
     val id: Long = 0,
 
     @Column(unique = true, nullable = false)
-    @field:NotBlank(message = "手机号不能为空")
-    @field:Pattern(regexp = "^1[3-9]\\d{9}$", message = "手机号格式不正确")
-    var  phone: String, // 手机号通常不变，保持为 val
+    var phone: String = "",
 
-    @field:NotBlank(message = "密码不能为空")
-    @Column(nullable = false)
-    var password: String,
+    var password: String = "",
 
-    @field:NotBlank(message = "姓名不能为空")
-    var name: String, // 姓名可以修改，改为 var
+    var name: String = "开发用户",
 
-    @field:Min(value = 1, message = "年龄必须大于0")
-    @field:Max(value = 150, message = "年龄不能超过150")
-    var age: Int, // 年龄可以修改，改为 var
+    var age: Int = 18,
 
     @Enumerated(EnumType.STRING)
-    var gender: Gender, // 性别可以修改，改为 var
+    var gender: Gender = Gender.UNKNOWN,
 
-    @field:NotBlank(message = "地域不能为空")
-    var region: String, // 地域可以修改，改为 var
+    var region: String = "未知",
+
+    var avatar: String = "user/avatars/default.jpg",  // 相对路径
+    var birthday: LocalDate? = null,
+    var hobby: String? = null,
+
 
     @Column(name = "created_at", updatable = false)
-    val createdAt: LocalDateTime = LocalDateTime.now(), // 创建时间不变，保持 val
+    val createdAt: LocalDateTime = LocalDateTime.now(),
 
     @Column(name = "updated_at")
-    var updatedAt: LocalDateTime = LocalDateTime.now() // 更新时间需要修改，改为 var
+    var updatedAt: LocalDateTime = LocalDateTime.now()
 )
 
 @Entity
@@ -47,45 +45,31 @@ data class Consultant(
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long = 0,
 
-    @field:NotBlank(message = "姓名不能为空")
-    var name: String,
+    var name: String = "开发咨询师",
 
     @Column(unique = true, nullable = false)
-    @field:NotBlank(message = "手机号不能为空")
-    @field:Pattern(regexp = "^1[3-9]\\d{9}$", message = "手机号格式不正确")
-    val phone: String,
+    var phone: String = "",
 
-    @field:NotBlank(message = "密码不能为空")
-    @Column(nullable = false)
-    var password: String,
+    var password: String = "",
 
-    @field:NotBlank(message = "级别不能为空")
-    var level: String, // 如：初级咨询师、资深咨询师等
+    var level: String = "初级咨询师",
 
-    @field:NotBlank(message = "专长不能为空")
-    var specialty: String, // 情感关系、职场压力等
+    var specialty: String = "情感关系",
 
     @Enumerated(EnumType.STRING)
-    var gender: Gender, // MALE, FEMALE, UNKNOWN
+    var gender: Gender = Gender.UNKNOWN,
 
-    @field:NotBlank(message = "地点不能为空")
-    var location: String, // 地区，如“上海”
+    var location: String = "未知",
 
-    @field:DecimalMin(value = "0.0", inclusive = true, message = "评分不能小于0")
-    @field:DecimalMax(value = "5.0", inclusive = true, message = "评分不能超过5")
-    var rating: Double = 0.0, // 默认评分为0
+    var rating: Double = 0.0,
 
-    @field:NotBlank(message = "头像链接不能为空")
     var avatar: String = "/images/avatars/default.jpg",
 
-    @field:Min(value = 0, message = "经验年限不能为负数")
-    var experienceYears: Int, // 咨询经验年限
+    var experienceYears: Int = 0,
 
-    @field:Min(value = 0, message = "咨询次数不能为负数")
-    var consultationCount: Int, // 咨询次数
+    var consultationCount: Int = 0,
 
-    @field:Min(value = 0, message = "每小时价格不能为负数")
-    var pricePerHour: Int, // 每小时价格（单位：元）
+    var pricePerHour: Int = 0,
 
     @Column(name = "created_at", updatable = false)
     val createdAt: LocalDateTime = LocalDateTime.now(),
@@ -93,6 +77,7 @@ data class Consultant(
     @Column(name = "updated_at")
     var updatedAt: LocalDateTime = LocalDateTime.now()
 )
+
 
 enum class Gender {
     MALE, FEMALE, UNKNOWN

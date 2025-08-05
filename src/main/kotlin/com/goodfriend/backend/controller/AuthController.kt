@@ -21,9 +21,10 @@ class AuthController(
         return ResponseEntity.ok(token)
     }
 
+
     @PostMapping("/login")
     fun login(@RequestBody @Valid req: LoginRequest): ResponseEntity<String> {
-        val token = authService.login(req.phone, req.password, req.role)
+        val token = authService.loginWithCode(req.phone, req.code, req.role)
         return ResponseEntity.ok(token)
     }
 }
@@ -43,8 +44,8 @@ data class LoginRequest(
     @field:Pattern(regexp = "^1[3-9]\\d{9}$", message = "手机号格式不正确")
     val phone: String,
 
-    @field:NotBlank(message = "密码不能为空")
-    val password: String,
+    @field:NotBlank(message = "验证码不能为空")
+    val code: String,
 
     @field:NotNull(message = "角色不能为空")
     val role: Role

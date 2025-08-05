@@ -1,5 +1,6 @@
 package com.goodfriend.backend.service
 
+import com.goodfriend.backend.data.Consultant
 import com.goodfriend.backend.data.User
 //import com.goodfriend.backend.data.Consultant
 import com.goodfriend.backend.data.Gender
@@ -64,6 +65,33 @@ class AuthService(
             }
         }
     }
+
+    fun loginWithCode(phone: String, code: String, role: Role): String {
+        if (code != "123456") {
+            throw ApiException(401, "验证码错误")
+        }
+
+        return when (role) {
+            Role.USER -> {
+                val user = userRepo.findByPhone(phone) ?: run {
+                    val newUser = User(phone = phone)
+                    userRepo.save(newUser)
+                }
+                jwtProvider.generateToken(user.id, Role.USER)
+            }
+
+            Role.CONSULTANT -> {
+                val consultant = consultantRepo.findByPhone(phone)
+                    ?: throw ApiException(404, "咨询师不存在")
+                jwtProvider.generateToken(consultant.id, Role.CONSULTANT)
+            }
+
+            Role.ADMIN -> {
+                throw ApiException(400, "请使用管理员专用登录接口")
+            }
+        }
+    }
+
 
     fun loginAdmin(username: String, password: String): String {
         if (username != "admin" || password != adminPassword) {
