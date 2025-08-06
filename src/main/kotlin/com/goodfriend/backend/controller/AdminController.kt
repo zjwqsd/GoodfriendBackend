@@ -78,7 +78,7 @@ data class ConsultantApplicationDTO(
     val userId: Long,
     val name: String?,
     val phone: String?,
-    val specialty: String,
+    val specialty: List<String>,
     val reason: String,
     val status: ApplicationStatus,
     val createdAt: LocalDateTime

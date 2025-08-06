@@ -30,7 +30,7 @@ class ConsultantService(
             gender = Gender.UNKNOWN,
             location = "未知",
             level = "普通咨询师",
-            specialty = "未填写",
+            specialty = listOf("未填写"),
             rating = 0.0,
             avatar = "consultant/avatars/default.jpg",
             experienceYears = 0,
@@ -40,7 +40,7 @@ class ConsultantService(
         return consultantRepo.save(consultant)
     }
 
-    fun updateConsultantInfo(id: Long, name: String?, location: String?, specialty: String?) {
+    fun updateConsultantInfo(id: Long, name: String?, location: String?, specialty: List<String>?) {
         val consultant = consultantRepo.findById(id).orElseThrow { ApiException(404, "咨询师不存在") }
         name?.let { consultant.name = it }
         location?.let { consultant.location = it }
@@ -68,7 +68,7 @@ class ConsultantService(
                 gender = Gender.UNKNOWN,
                 location = "未知",
                 rating = 0.0,
-                avatar = "/images/avatars/default.jpg",
+                avatar = "consultant/avatars/default.jpg",
                 experienceYears = application.experienceYears,
                 consultationCount = 0,
                 pricePerHour = 0

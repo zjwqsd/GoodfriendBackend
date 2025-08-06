@@ -42,8 +42,9 @@ data class UpdateConsultantRequest(
     @field:Size(min = 1, max = 50, message = "工作地点不能为空")
     val location: String? = null,
 
-    @field:Size(min = 1, max = 50, message = "专长不能为空")
-    val specialty: String? = null
+    // specialty 改为数组，每项长度限制 1-50，总长度限制 1-10
+    @field:Size(min = 1, max = 10, message = "请填写 1~10 个擅长领域")
+    val specialty: List<@Size(min = 1, max = 50, message = "每个擅长领域长度应在1~50之间") String>? = null
 )
 
 // ✅ 固定类型写法（推荐）
@@ -52,19 +53,19 @@ data class ConsultantDTO(
     val name: String,
     val gender: Gender,
     val location: String,
-    val specialty: String,
+    val specialty: List<String>, // 改为数组
     val level: String,
     val rating: Double,
     val avatar: String,
     val pricePerHour: Int,
 ) {
     companion object {
-        fun from(c: Consultant) = ConsultantDTO(
+        fun from(c: Consultant): ConsultantDTO = ConsultantDTO(
             id = c.id,
             name = c.name,
             gender = c.gender,
             location = c.location,
-            specialty = c.specialty,
+            specialty = c.specialty,  // 确保 Consultant 中也是 List<String>
             level = c.level,
             rating = c.rating,
             avatar = c.avatar,
@@ -72,3 +73,4 @@ data class ConsultantDTO(
         )
     }
 }
+

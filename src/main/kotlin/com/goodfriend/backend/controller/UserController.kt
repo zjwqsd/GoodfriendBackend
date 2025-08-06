@@ -129,14 +129,14 @@ data class ConsultantApplicationRequest(
     @field:NotBlank(message = "专业不能为空")
     val major: String,
 
-    @field:NotBlank(message = "执业证书编号不能为空")
-    val licenseNumber: String,
+    val licenseNumber: String? = null,
 
     @field:Min(value = 0, message = "工作经验不能为负数")
     val experienceYears: Int,
 
-    @field:NotBlank(message = "擅长领域不能为空")
-    val specialty: String,  // 情感关系、职场压力等
+    // specialty 改为数组类型
+    @field:Size(min = 1, message = "至少填写一个擅长领域")
+    val specialty: List<String>,
 
     @field:Size(max = 500, message = "个人简介不能超过500字")
     val bio: String,

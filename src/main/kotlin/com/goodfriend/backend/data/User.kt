@@ -54,7 +54,9 @@ data class Consultant(
 
     var level: String = "初级咨询师",
 
-    var specialty: String = "情感关系",
+    @Convert(converter = StringListConverter::class)
+    @Column(columnDefinition = "TEXT")
+    var specialty: List<String> = listOf("情感关系"),
 
     @Enumerated(EnumType.STRING)
     var gender: Gender = Gender.UNKNOWN,

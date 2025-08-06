@@ -3,6 +3,16 @@ import jakarta.persistence.*
 import jakarta.validation.constraints.*
 import java.time.LocalDateTime
 
+@Converter
+class StringListConverter : AttributeConverter<List<String>, String> {
+    override fun convertToDatabaseColumn(attribute: List<String>?): String {
+        return attribute?.joinToString(",") ?: ""
+    }
+
+    override fun convertToEntityAttribute(dbData: String?): List<String> {
+        return dbData?.split(",")?.filter { it.isNotBlank() } ?: emptyList()
+    }
+}
 
 @Entity
 @Table(name = "consultant_applications")
@@ -32,14 +42,14 @@ data class ConsultantApplication(
     @field:NotBlank
     val major: String,
 
-    @field:NotBlank
-    val licenseNumber: String,
+    val licenseNumber: String? = null,
 
     @field:Min(0)
     val experienceYears: Int,
 
-    @field:NotBlank
-    val specialty: String,
+    @Convert(converter = StringListConverter::class)
+    @Column(columnDefinition = "TEXT")
+    val specialty: List<String>,
 
     @field:Size(max = 500)
     val bio: String,
