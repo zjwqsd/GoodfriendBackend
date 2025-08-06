@@ -1,9 +1,9 @@
 package com.goodfriend.backend.service
 
-import com.goodfriend.backend.controller.ConsultantApplicationRequest
 import com.goodfriend.backend.data.ApplicationStatus
 import com.goodfriend.backend.data.ConsultantApplication
 import com.goodfriend.backend.data.Gender
+import com.goodfriend.backend.dto.ConsultantApplicationRequest
 import com.goodfriend.backend.exception.ApiException
 import com.goodfriend.backend.repository.ConsultantApplicationRepository
 import com.goodfriend.backend.repository.UserRepository

@@ -1,7 +1,7 @@
 package com.goodfriend.backend.controller
 
-import com.goodfriend.backend.data.ApplicationStatus
-import com.goodfriend.backend.data.ConsultantApplication
+import com.goodfriend.backend.dto.AdminLoginRequest
+import com.goodfriend.backend.dto.ConsultantApplicationDTO
 import com.goodfriend.backend.repository.ConsultantApplicationRepository
 import com.goodfriend.backend.security.annotation.AdminOnly
 import com.goodfriend.backend.service.AuthService
@@ -10,7 +10,6 @@ import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
 import jakarta.validation.constraints.*
 import org.springframework.web.bind.annotation.*
-import java.time.LocalDateTime
 
 @RestController
 @RequestMapping("/api/admin")
@@ -65,35 +64,7 @@ data class CreateConsultantRequest(
 )
 
 
-data class AdminLoginRequest(
-    @field:NotBlank(message = "管理员用户名不能为空")
-    val username: String,
 
-    @field:NotBlank(message = "管理员密码不能为空")
-    val password: String
-)
 
-data class ConsultantApplicationDTO(
-    val id: Long,
-    val userId: Long,
-    val name: String?,
-    val phone: String?,
-    val specialty: List<String>,
-    val reason: String,
-    val status: ApplicationStatus,
-    val createdAt: LocalDateTime
-) {
-    companion object {
-        fun from(app: ConsultantApplication) = ConsultantApplicationDTO(
-            id = app.id,
-            userId = app.userId,
-            name = app.name,
-            phone = app.phone,
-            specialty = app.specialty,
-            reason = app.reason,
-            status = app.status,
-            createdAt = app.createdAt
-        )
-    }
-}
+
 

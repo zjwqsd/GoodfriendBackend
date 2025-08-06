@@ -14,8 +14,21 @@ class CurrentRoleService(
     private val consultantRepo: ConsultantRepository,
     private val jwtTokenProvider: JwtTokenProvider
 ) {
-    fun getTokenFromRequest(request: HttpServletRequest): String =
-        request.getHeader("Authorization")?.removePrefix("Bearer ") ?: throw ApiException(400,"缺少Token")
+    fun getTokenFromRequest(request: HttpServletRequest): String {
+        val authHeader = request.getHeader("Authorization")
+            ?: throw ApiException(401, "未提供 Authorization 头")
+
+        if (!authHeader.startsWith("Bearer ")) {
+            throw ApiException(401, "Authorization 头格式错误，应为 Bearer <token>")
+        }
+
+        val token = authHeader.removePrefix("Bearer ").trim()
+        if (token.isBlank()) {
+            throw ApiException(401, "Token 不能为空")
+        }
+
+        return token
+    }
 
     fun getCurrentRole(request: HttpServletRequest): Role =
         jwtTokenProvider.getRoleFromToken(getTokenFromRequest(request))
@@ -29,9 +42,4 @@ class CurrentRoleService(
     fun getCurrentConsultant(request: HttpServletRequest): Consultant =
         consultantRepo.findById(getCurrentId(request)).orElseThrow { ApiException(400,"咨询师不存在") }
 
-//    fun getCurrentEntity(request: HttpServletRequest): Any = when (getCurrentRole(request)) {
-//        Role.USER -> getCurrentUser(request)
-//        Role.CONSULTANT -> getCurrentConsultant(request)
-//        else -> throw RuntimeException("管理员不支持实体访问")
-//    }
 }
