@@ -1,8 +1,10 @@
 package com.goodfriend.backend.service
 
-import com.goodfriend.backend.data.ApplicationStatus
-import com.goodfriend.backend.data.Consultant
-import com.goodfriend.backend.data.Gender
+import com.goodfriend.backend.data.*
+import com.goodfriend.backend.dto.CertificationDTO
+import com.goodfriend.backend.dto.EducationDTO
+import com.goodfriend.backend.dto.ExperienceDTO
+import com.goodfriend.backend.dto.UpdateConsultantRequest
 import com.goodfriend.backend.exception.ApiException
 import com.goodfriend.backend.repository.ConsultantApplicationRepository
 import com.goodfriend.backend.repository.ConsultantRepository
@@ -17,6 +19,7 @@ class ConsultantService(
     private val consultantRepo: ConsultantRepository,
     private val passwordEncoder: PasswordEncoder,
     private val applicationRepo: ConsultantApplicationRepository,
+    private val consultantRepository: ConsultantRepository
 ) {
 
     fun createConsultantAccount(phone: String, password: String, name: String): Consultant {
@@ -40,13 +43,57 @@ class ConsultantService(
         return consultantRepo.save(consultant)
     }
 
-    fun updateConsultantInfo(id: Long, name: String?, location: String?, specialty: List<String>?) {
-        val consultant = consultantRepo.findById(id).orElseThrow { ApiException(404, "咨询师不存在") }
-        name?.let { consultant.name = it }
-        location?.let { consultant.location = it }
-        specialty?.let { consultant.specialty = it }
-        consultantRepo.save(consultant)
+    fun updateConsultantInfo(consultant: Consultant, req: UpdateConsultantRequest) {
+        req.name?.let { consultant.name = it }
+        req.location?.let { consultant.location = it }
+        req.specialty?.let { consultant.specialty = it }
+        req.experienceYears?.let { consultant.experienceYears = it }
+        req.consultationCount?.let { consultant.consultationCount = it }
+        req.trainingHours?.let { consultant.trainingHours = it }
+        req.supervisionHours?.let { consultant.supervisionHours = it }
+        req.bio?.let { consultant.bio = it }
+        req.consultationMethods?.let { consultant.consultationMethods = it }
+        req.availability?.let { consultant.availability = it }
+        req.pricePerHour?.let { consultant.pricePerHour = it }
+
+        req.educationList?.let {
+            consultant.educationList = it.map { edu ->
+                Education(
+                    degree = edu.degree,
+                    school = edu.school,
+                    major = edu.major,
+                    time = edu.time
+                )
+            }
+        }
+
+        req.experienceList?.let {
+            consultant.experienceList = it.map { exp ->
+                Experience(
+                    company = exp.company,
+                    position = exp.position,
+                    duration = exp.duration,
+                    description = exp.description
+                )
+            }
+        }
+
+        req.certificationList?.let {
+            consultant.certificationList = it.map { cert ->
+                Certification(
+                    name = cert.name,
+                    number = cert.number,
+                    issuer = cert.issuer,
+                    date = cert.date
+                )
+            }
+        }
+
+        consultant.updatedAt = LocalDateTime.now()
+        consultantRepository.save(consultant)
     }
+
+
 
 
     fun reviewApplication(applicationId: Long, approve: Boolean) {

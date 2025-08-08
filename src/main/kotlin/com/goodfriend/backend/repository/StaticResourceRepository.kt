@@ -15,4 +15,6 @@ interface StaticResourceRepository : JpaRepository<StaticResource, Long> {
     fun findByScopeAndCategoryAndFilename(scope: String, category: String, filename: String): StaticResource?
 
     fun findByValidFalseAndCreatedAtBefore(time: LocalDateTime): List<StaticResource>
+
+    fun findByScopeAndCategoryAndValid(scope: String, category: String, valid: Boolean): List<StaticResource>
 }

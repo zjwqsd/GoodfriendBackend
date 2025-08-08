@@ -35,24 +35,53 @@ data class ConsultantApplicationDTO(
 }
 
 data class UpdateConsultantRequest(
+
     @field:Size(min = 1, max = 20, message = "姓名不能为空")
     val name: String? = null,
 
     @field:Size(min = 1, max = 50, message = "工作地点不能为空")
     val location: String? = null,
 
-    // specialty 改为数组，每项长度限制 1-50，总长度限制 1-10
     @field:Size(min = 1, max = 10, message = "请填写 1~10 个擅长领域")
-    val specialty: List<@Size(min = 1, max = 50, message = "每个擅长领域长度应在1~50之间") String>? = null
+    val specialty: List<@Size(min = 1, max = 50, message = "每个擅长领域长度应在1~50之间") String>? = null,
+
+    @field:Min(0, message = "从业年限不能为负数")
+    val experienceYears: Int? = null,
+
+    @field:Min(0, message = "咨询时长不能为负数")
+    val consultationCount: Int? = null,
+
+    @field:Min(0, message = "受训时长不能为负数")
+    val trainingHours: Int? = null,
+
+    @field:Min(0, message = "督导时长不能为负数")
+    val supervisionHours: Int? = null,
+
+    @field:Size(max = 1000, message = "个人简介不能超过1000字")
+    val bio: String? = null,
+
+    @field:Size(min = 1, max = 5, message = "请填写 1~5 种咨询方式")
+    val consultationMethods: List<@Size(min = 2, max = 20, message = "每种方式长度应在2~20之间") String>? = null,
+
+    @field:Size(max = 100, message = "接诊时间描述不能超过100字")
+    val availability: String? = null,
+
+    @field:Min(0, message = "咨询费用不能为负数")
+    val pricePerHour: Int? = null,
+
+    val educationList: List<EducationDTO>? = null,
+
+    val experienceList: List<ExperienceDTO>? = null,
+
+    val certificationList: List<CertificationDTO>? = null
 )
 
-// ✅ 固定类型写法（推荐）
 data class ConsultantDTO(
     val id: Long,
     val name: String,
     val gender: Gender,
     val location: String,
-    val specialty: List<String>, // 改为数组
+    val specialty: List<String>,
     val level: String,
     val rating: Double,
     val avatar: String,
@@ -64,7 +93,7 @@ data class ConsultantDTO(
             name = c.name,
             gender = c.gender,
             location = c.location,
-            specialty = c.specialty,  // 确保 Consultant 中也是 List<String>
+            specialty = c.specialty,
             level = c.level,
             rating = c.rating,
             avatar = c.avatar,
@@ -84,8 +113,16 @@ data class ConsultantProfileResponse(
     val specialty: List<String>,
     val experienceYears: Int,
     val consultationCount: Int,
+    val trainingHours: Int,
+    val supervisionHours: Int,
+    val bio: String,
+    val consultationMethods: List<String>,
+    val availability: String,
     val pricePerHour: Int,
-    val rating: Double
+    val rating: Double,
+    val educationList: List<EducationDTO>,
+    val experienceList: List<ExperienceDTO>,
+    val certificationList: List<CertificationDTO>
 ) {
     companion object {
         fun from(c: Consultant): ConsultantProfileResponse {
@@ -100,12 +137,42 @@ data class ConsultantProfileResponse(
                 specialty = c.specialty,
                 experienceYears = c.experienceYears,
                 consultationCount = c.consultationCount,
+                trainingHours = c.trainingHours,
+                supervisionHours = c.supervisionHours,
+                bio = c.bio,
+                consultationMethods = c.consultationMethods,
+                availability = c.availability,
                 pricePerHour = c.pricePerHour,
-                rating = c.rating
+                rating = c.rating,
+                educationList = c.educationList.map {
+                    EducationDTO(
+                        degree = it.degree,
+                        school = it.school,
+                        major = it.major,
+                        time = it.time
+                    )
+                },
+                experienceList = c.experienceList.map {
+                    ExperienceDTO(
+                        company = it.company,
+                        position = it.position,
+                        duration = it.duration,
+                        description = it.description
+                    )
+                },
+                certificationList = c.certificationList.map {
+                    CertificationDTO(
+                        name = it.name,
+                        number = it.number,
+                        issuer = it.issuer,
+                        date = it.date
+                    )
+                }
             )
         }
     }
 }
+
 
 data class ConsultantApplicationRequest(
     @field:NotBlank(message = "真实姓名不能为空")
@@ -140,4 +207,47 @@ data class ConsultantApplicationRequest(
 
     @field:Size(max = 300, message = "申请理由不能超过300字")
     val reason: String
+)
+
+data class EducationDTO(
+    @field:NotBlank(message = "学历不能为空")
+    val degree: String,
+
+    @field:NotBlank(message = "学校名称不能为空")
+    val school: String,
+
+    @field:NotBlank(message = "专业不能为空")
+    val major: String,
+
+    @field:NotBlank(message = "时间不能为空")
+    val time: String  // 示例格式：2014-2018
+)
+
+data class ExperienceDTO(
+    @field:NotBlank(message = "公司名称不能为空")
+    val company: String,
+
+    @field:NotBlank(message = "职位不能为空")
+    val position: String,
+
+    @field:NotBlank(message = "工作时间不能为空")
+    val duration: String, // 示例格式：2021年至今
+
+    @field:NotBlank(message = "工作描述不能为空")
+    val description: String
+)
+
+
+data class CertificationDTO(
+    @field:NotBlank(message = "证书名称不能为空")
+    val name: String,
+
+    @field:NotBlank(message = "证书编号不能为空")
+    val number: String,
+
+    @field:NotBlank(message = "发证机构不能为空")
+    val issuer: String,
+
+    @field:NotBlank(message = "获证时间不能为空")
+    val date: String  // 示例格式：2021年06月
 )

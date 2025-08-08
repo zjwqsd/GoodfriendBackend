@@ -1,9 +1,11 @@
 package com.goodfriend.backend.service
 
 import com.goodfriend.backend.config.FileStorageProperties
+import com.goodfriend.backend.data.Consultant
 import com.goodfriend.backend.data.StaticResource
 import com.goodfriend.backend.dto.StaticResourceDTO
 import com.goodfriend.backend.dto.StaticResourceTree
+import com.goodfriend.backend.repository.ConsultantRepository
 import com.goodfriend.backend.repository.StaticResourceRepository
 import jakarta.annotation.PostConstruct
 //import org.springframework.beans.factory.annotation.Value
@@ -21,7 +23,8 @@ import java.time.LocalDateTime
 @Service
 class StaticResourceService(
     private val staticRepo: StaticResourceRepository,
-    private val storageProps: FileStorageProperties
+    private val storageProps: FileStorageProperties,
+    private val consultantRepo: ConsultantRepository,
 ) {
     private lateinit var rootPath: Path
     @PostConstruct
@@ -104,4 +107,34 @@ class StaticResourceService(
 
         staticRepo.deleteById(id)
     }
+
+    fun uploadConsultantAvatarAndSet(
+        file: MultipartFile,
+        consultant: Consultant
+    ) {
+        // 1. 自动推断文件扩展名
+        val contentType = file.contentType ?: "image/jpeg"
+        val extension = when (contentType) {
+            "image/png" -> "png"
+            "image/jpeg", "image/jpg" -> "jpg"
+            else -> throw IllegalArgumentException("不支持的图片类型")
+        }
+
+        // 2. 文件名固定为 {id}.{ext}
+        val filename = "${consultant.id}.$extension"
+
+        // 3. 上传文件
+        val resource = uploadStaticFile(
+            file = file,
+            scope = "consultant",
+            category = "avatars",
+            filename = filename,
+            description = "咨询师 ${consultant.name} 的头像"
+        )
+
+        // 4. 更新头像路径并保存数据库
+        consultant.avatar = resource.getPathSuffix()
+        consultantRepo.save(consultant)
+    }
+
 }

@@ -22,7 +22,7 @@ class AdminController(
     @PostMapping("/consultant/create")
     @AdminOnly
     fun createConsultant(@RequestBody @Valid req: CreateConsultantRequest, @RequestHeader("Authorization") authHeader: String?): ResponseEntity<Any> {
-        val consultant = consultantService.createConsultantAccount(req.phone, req.password, req.name)
+        val consultant = consultantService.createConsultantAccount(req.phone, "NO_PASSWORD", req.name)
         return ResponseEntity.ok(mapOf("id" to consultant.id))
     }
 
@@ -56,8 +56,8 @@ data class CreateConsultantRequest(
     @field:Pattern(regexp = "^1[3-9]\\d{9}$", message = "手机号格式不正确")
     val phone: String,
 
-    @field:NotBlank(message = "密码不能为空")
-    val password: String,
+//    @field:NotBlank(message = "密码不能为空")
+//    val password: String,
 
     @field:NotBlank(message = "姓名不能为空")
     val name: String

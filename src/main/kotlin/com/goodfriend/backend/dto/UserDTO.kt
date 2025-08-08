@@ -2,13 +2,11 @@ package com.goodfriend.backend.dto
 
 import com.goodfriend.backend.data.Gender
 import com.goodfriend.backend.data.User
-import jakarta.validation.constraints.Max
-import jakarta.validation.constraints.Min
-import jakarta.validation.constraints.Pattern
-import jakarta.validation.constraints.Size
+import jakarta.validation.constraints.*
 import java.time.LocalDate
 
 data class UpdateUserRequest(
+    @field:NotBlank(message = "姓名不能为空")
     @field:Size(min = 1, max = 20, message = "姓名长度必须在1~20个字符之间")
     val name: String? = null,
 
@@ -18,20 +16,18 @@ data class UpdateUserRequest(
 
     val gender: Gender? = null,
 
-    @field:Size(min = 1, max = 50, message = "地域不能为空")
+    @field:NotBlank(message = "地域不能为空")
+    @field:Size(min = 1, max = 50, message = "地域长度不能超过50")
     val region: String? = null,
 
-    @field:Pattern(
-        regexp = "^(user/avatars/)[\\w.-]+\\.(jpg|png|jpeg)$",
-        message = "头像路径格式错误"
-    )
-    val avatar: String? = null,
+    val avatar: String?, // 可空，不验证，只在 Service 内处理逻辑
 
     val birthday: LocalDate? = null,
 
     @field:Size(max = 200, message = "兴趣爱好内容过长")
     val hobby: String? = null
 )
+
 
 
 data class UserProfileResponse(

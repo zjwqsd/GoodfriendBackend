@@ -4,8 +4,10 @@ import com.goodfriend.backend.data.ApplicationStatus
 import com.goodfriend.backend.data.ConsultantApplication
 import com.goodfriend.backend.data.Gender
 import com.goodfriend.backend.dto.ConsultantApplicationRequest
+import com.goodfriend.backend.dto.UpdateUserRequest
 import com.goodfriend.backend.exception.ApiException
 import com.goodfriend.backend.repository.ConsultantApplicationRepository
+import com.goodfriend.backend.repository.StaticResourceRepository
 import com.goodfriend.backend.repository.UserRepository
 
 import org.springframework.stereotype.Service
@@ -16,31 +18,31 @@ import java.time.LocalDateTime
 class UserService(
     private val userRepo: UserRepository,
     private val applicationRepo: ConsultantApplicationRepository,
+    private val staticResourceRepo: StaticResourceRepository
 ) {
 
-    fun updateUserInfo(
-        userId: Long,
-        name: String?,
-        age: Int?,
-        gender: Gender?,
-        region: String?,
-        avatar: String?,
-        birthday: LocalDate?,
-        hobby: String?
-    ) {
-        val user = userRepo.findById(userId).orElseThrow { ApiException(404, "用户不存在") }
+    fun updateUserInfo(userId: Long, req: UpdateUserRequest) {
+        val user = userRepo.findById(userId).orElseThrow { RuntimeException("用户不存在") }
 
-        name?.let { user.name = it }
-        age?.let { user.age = it }
-        gender?.let { user.gender = it }
-        region?.let { user.region = it }
-        avatar?.let { user.avatar = it }
-        birthday?.let { user.birthday = it }
-        hobby?.let { user.hobby = it }
+        req.name?.let { user.name = it }
+        req.age?.let { user.age = it }
+        req.gender?.let { user.gender = it }
+        req.region?.let { user.region = it }
+        req.birthday?.let { user.birthday = it }
+        req.hobby?.let { user.hobby = it }
 
-        user.updatedAt = LocalDateTime.now()
+        // ✅ 设置头像（如传入）
+        if (!req.avatar.isNullOrBlank()) {
+            val validAvatars = staticResourceRepo.findByScopeAndCategoryAndValid("user", "avatars", true)
+            val match = validAvatars.find { it.filename.substringBeforeLast('.') == req.avatar }
+                ?: throw IllegalArgumentException("未找到匹配的头像资源")
+            user.avatar = match.getPathSuffix()
+        }
+
         userRepo.save(user)
     }
+
+
 
 
     fun submitConsultantApplication(userId: Long, req: ConsultantApplicationRequest) {
@@ -64,5 +66,20 @@ class UserService(
         )
 
         applicationRepo.save(app)
+    }
+
+    fun getAvailableUserAvatarFilenames(): List<String> {
+        return staticResourceRepo.findByScopeAndCategoryAndValid("user", "avatars", true)
+            .map { it.filename.substringBeforeLast('.') } // 去掉扩展名
+    }
+
+    fun updateAvatar(userId: Long, filenameWithoutExt: String) {
+        val candidates = staticResourceRepo.findByScopeAndCategoryAndValid("user", "avatars", true)
+        val match = candidates.find { it.filename.substringBeforeLast('.') == filenameWithoutExt }
+            ?: throw IllegalArgumentException("未找到匹配的头像资源")
+
+        val user = userRepo.findById(userId).orElseThrow { RuntimeException("用户不存在") }
+        user.avatar = match.getPathSuffix()
+        userRepo.save(user)
     }
 }

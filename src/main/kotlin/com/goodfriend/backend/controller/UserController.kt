@@ -20,19 +20,13 @@ class UserController(
 
     @PutMapping("/update")
     @UserOnly
-    fun updateUser(@RequestBody @Valid req: UpdateUserRequest, request: HttpServletRequest, @RequestHeader("Authorization") authHeader: String?): ResponseEntity<Void> {
+    fun updateUser(
+        @RequestBody @Valid req: UpdateUserRequest,
+        request: HttpServletRequest,
+        @RequestHeader("Authorization") authHeader: String?
+    ): ResponseEntity<Void> {
         val user = currentRoleService.getCurrentUser(request)
-        userService.updateUserInfo(
-            user.id,
-            req.name,
-            req.age,
-            req.gender,
-            req.region,
-            req.avatar,
-            req.birthday,
-            req.hobby
-        )
-
+        userService.updateUserInfo(user.id, req)
         return ResponseEntity.ok().build()
     }
 
@@ -52,6 +46,14 @@ class UserController(
         userService.submitConsultantApplication(user.id, req)
         return ResponseEntity.ok().build()
     }
+
+    @GetMapping("/avatars")
+    @UserOnly
+    fun listAvailableAvatars(): ResponseEntity<List<String>> {
+        val list = userService.getAvailableUserAvatarFilenames()
+        return ResponseEntity.ok(list)
+    }
+
 
 }
 

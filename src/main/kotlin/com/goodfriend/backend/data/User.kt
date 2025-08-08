@@ -1,7 +1,8 @@
 package com.goodfriend.backend.data
 
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import jakarta.persistence.*
-import jakarta.validation.constraints.*
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -73,6 +74,30 @@ data class Consultant(
 
     var pricePerHour: Int = 0,
 
+    var trainingHours: Int = 0,
+    var supervisionHours: Int = 0,
+    @Column(columnDefinition = "TEXT")
+    var bio: String = "",
+
+    @Convert(converter = StringListConverter::class)
+    @Column(columnDefinition = "TEXT")
+    var consultationMethods: List<String> = listOf(),
+
+    @Column(columnDefinition = "TEXT")
+    var availability: String = "",
+
+    @Convert(converter = EducationListConverter::class)
+    @Column(columnDefinition = "TEXT")
+    var educationList: List<Education> = listOf(),
+
+    @Convert(converter = ExperienceListConverter::class)
+    @Column(columnDefinition = "TEXT")
+    var experienceList: List<Experience> = listOf(),
+
+    @Convert(converter = CertificationListConverter::class)
+    @Column(columnDefinition = "TEXT")
+    var certificationList: List<Certification> = listOf(),
+
     @Column(name = "created_at", updatable = false)
     val createdAt: LocalDateTime = LocalDateTime.now(),
 
@@ -84,3 +109,88 @@ data class Consultant(
 enum class Gender {
     MALE, FEMALE, UNKNOWN
 }
+
+@Converter
+class StringListConverter : AttributeConverter<List<String>, String> {
+    override fun convertToDatabaseColumn(attribute: List<String>?): String {
+        return attribute?.joinToString(",") ?: ""
+    }
+
+    override fun convertToEntityAttribute(dbData: String?): List<String> {
+        return dbData?.split(",")?.filter { it.isNotBlank() } ?: emptyList()
+    }
+}
+
+data class Education(
+    val degree: String,
+    val school: String,
+    val major: String,
+    val time: String
+)
+
+data class Experience(
+    val company: String,
+    val position: String,
+    val duration: String,
+    val description: String
+)
+
+data class Certification(
+    val name: String,
+    val number: String,
+    val issuer: String,
+    val date: String
+)
+
+object JsonUtils {
+    val mapper = jacksonObjectMapper()
+
+    inline fun <reified T> toJson(value: T): String {
+        return mapper.writeValueAsString(value)
+    }
+
+    inline fun <reified T> fromJson(json: String): T {
+        return mapper.readValue(json)
+    }
+}
+
+@Converter
+class EducationListConverter : AttributeConverter<List<Education>, String> {
+
+    override fun convertToDatabaseColumn(attribute: List<Education>?): String {
+        return JsonUtils.toJson(attribute ?: emptyList())
+    }
+
+    override fun convertToEntityAttribute(dbData: String?): List<Education> {
+        return if (dbData.isNullOrBlank()) emptyList()
+        else JsonUtils.fromJson(dbData)
+    }
+}
+
+@Converter
+class ExperienceListConverter : AttributeConverter<List<Experience>, String> {
+
+    override fun convertToDatabaseColumn(attribute: List<Experience>?): String {
+        return JsonUtils.toJson(attribute ?: emptyList())
+    }
+
+    override fun convertToEntityAttribute(dbData: String?): List<Experience> {
+        return if (dbData.isNullOrBlank()) emptyList()
+        else JsonUtils.fromJson(dbData)
+    }
+}
+
+@Converter
+class CertificationListConverter : AttributeConverter<List<Certification>, String> {
+
+    override fun convertToDatabaseColumn(attribute: List<Certification>?): String {
+        return JsonUtils.toJson(attribute ?: emptyList())
+    }
+
+    override fun convertToEntityAttribute(dbData: String?): List<Certification> {
+        return if (dbData.isNullOrBlank()) emptyList()
+        else JsonUtils.fromJson(dbData)
+    }
+}
+
+
