@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.method.annotation.HandlerMethodValidationException
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException
+import org.springframework.web.multipart.MaxUploadSizeExceededException
+import org.springframework.web.multipart.MultipartException
 import org.springframework.web.servlet.resource.NoResourceFoundException
 
 class ApiException(
@@ -79,6 +81,24 @@ class GlobalExceptionHandler {
     @ExceptionHandler(NoResourceFoundException::class)
     fun handleStaticResourceNotFound(ex: NoResourceFoundException): ResponseEntity<ErrorResponse> {
         return ResponseEntity.status(404).body(ErrorResponse("资源未找到: ${ex.resourcePath}"))
+    }
+
+
+    @ExceptionHandler(MaxUploadSizeExceededException::class)
+    fun handleMaxUploadSizeExceeded(ex: MaxUploadSizeExceededException): ResponseEntity<ErrorResponse> {
+        val max = ex.maxUploadSize  // 可能为 -1 或 null（取决于容器/配置）
+        val message = if (max > 0) {
+            val mb = (max + (1024 * 1024 - 1)) / (1024 * 1024) // 向上取整到 MB
+            "上传文件大小超出限制：最大 ${mb}MB"
+        } else {
+            "上传文件大小超出限制"
+        }
+        return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE).body(ErrorResponse(message))
+    }
+
+    @ExceptionHandler(MultipartException::class)
+    fun handleMultipart(ex: MultipartException): ResponseEntity<ErrorResponse> {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ErrorResponse("文件上传解析失败，请检查表单格式与文件大小"))
     }
 
     @ExceptionHandler(Exception::class)

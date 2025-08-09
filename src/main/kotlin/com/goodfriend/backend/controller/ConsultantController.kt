@@ -54,7 +54,7 @@ class ConsultantController(
     }
 
 
-    @PostMapping("/consultant/avatar", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
+    @PostMapping("/avatar", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     @ConsultantOnly
     fun uploadConsultantAvatar(
         request: HttpServletRequest,
