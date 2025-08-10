@@ -48,12 +48,17 @@ data class ConsultantApplication(
     @field:Size(max = 300)
     val reason: String,
 
+    @field:Size(max = 300)
+    var reviewComment: String? = null,   // ✅ 审核意见（拒绝原因/通过备注）
+
     @Enumerated(EnumType.STRING)
     var status: ApplicationStatus = ApplicationStatus.PENDING,
 
     val createdAt: LocalDateTime = LocalDateTime.now(),
 
-    var updatedAt: LocalDateTime = LocalDateTime.now()
+    var updatedAt: LocalDateTime = LocalDateTime.now(),
+
+
 )
 
 

@@ -45,6 +45,7 @@ class ConsultantService(
 
     fun updateConsultantInfo(consultant: Consultant, req: UpdateConsultantRequest) {
         req.name?.let { consultant.name = it }
+        req.gender?.let { consultant.gender = it }
         req.location?.let { consultant.location = it }
         req.specialty?.let { consultant.specialty = it }
         req.experienceYears?.let { consultant.experienceYears = it }
@@ -96,7 +97,7 @@ class ConsultantService(
 
 
 
-    fun reviewApplication(applicationId: Long, approve: Boolean) {
+    fun reviewApplication(applicationId: Long, approve: Boolean, rejectReason: String? = null) {
         val application = applicationRepo.findById(applicationId)
             .orElseThrow { ApiException(404, "申请不存在") }
 
@@ -105,7 +106,6 @@ class ConsultantService(
         }
 
         if (approve) {
-            // 从申请表构造 Consultant
             val consultant = Consultant(
                 name = application.name,
                 phone = application.phone,
@@ -122,8 +122,10 @@ class ConsultantService(
             )
             consultantRepo.save(consultant)
             application.status = ApplicationStatus.APPROVED
+            application.reviewComment = null
         } else {
             application.status = ApplicationStatus.REJECTED
+            application.reviewComment = rejectReason?.trim()
         }
 
         application.updatedAt = LocalDateTime.now()

@@ -3,6 +3,8 @@ package com.goodfriend.backend.service
 import com.goodfriend.backend.data.ApplicationStatus
 import com.goodfriend.backend.data.ConsultantApplication
 import com.goodfriend.backend.data.Gender
+import com.goodfriend.backend.data.User
+import com.goodfriend.backend.dto.ConsultantApplicationDTO
 import com.goodfriend.backend.dto.ConsultantApplicationRequest
 import com.goodfriend.backend.dto.UpdateUserRequest
 import com.goodfriend.backend.exception.ApiException
@@ -81,5 +83,15 @@ class UserService(
         val user = userRepo.findById(userId).orElseThrow { RuntimeException("用户不存在") }
         user.avatar = match.getPathSuffix()
         userRepo.save(user)
+    }
+
+
+    fun getUserApplications(userId: Long): List<ConsultantApplicationDTO> {
+        return applicationRepo.findByUserIdOrderByCreatedAtDesc(userId)
+            .map { ConsultantApplicationDTO.from(it) }
+    }
+
+    fun getUserById(id: Long): User? {
+        return userRepo.findById(id).orElse(null)
     }
 }

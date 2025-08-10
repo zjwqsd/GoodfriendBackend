@@ -2,10 +2,14 @@ package com.goodfriend.backend.controller
 
 import com.goodfriend.backend.dto.AdminLoginRequest
 import com.goodfriend.backend.dto.ConsultantApplicationDTO
+import com.goodfriend.backend.dto.UserProfileResponse
+import com.goodfriend.backend.exception.ApiException
 import com.goodfriend.backend.repository.ConsultantApplicationRepository
+import com.goodfriend.backend.repository.UserRepository
 import com.goodfriend.backend.security.annotation.AdminOnly
 import com.goodfriend.backend.service.AuthService
 import com.goodfriend.backend.service.ConsultantService
+import com.goodfriend.backend.service.UserService
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
 import jakarta.validation.constraints.*
@@ -17,6 +21,7 @@ class AdminController(
     private val consultantService: ConsultantService,
     private val authService: AuthService,
     private val applicationRepo: ConsultantApplicationRepository,
+    private val userService: UserService
 ) {
 
     @PostMapping("/consultant/create")
@@ -36,10 +41,13 @@ class AdminController(
     @AdminOnly
     fun reviewConsultantApplication(
         @PathVariable id: Long,
-        @RequestParam approve: Boolean,
+        @RequestBody @Valid req: ReviewApplicationRequest,
         @RequestHeader("Authorization") authHeader: String?
     ): ResponseEntity<Any> {
-        consultantService.reviewApplication(id, approve)
+        if (!req.approve && req.rejectReason.isNullOrBlank()) {
+            throw ApiException(400, "拒绝申请时必须填写原因")
+        }
+        consultantService.reviewApplication(id, req.approve, req.rejectReason)
         return ResponseEntity.ok().build()
     }
 
@@ -48,6 +56,17 @@ class AdminController(
     fun getAllConsultantApplications(@RequestHeader("Authorization") authHeader: String?): ResponseEntity<List<ConsultantApplicationDTO>> {
         val applications = applicationRepo.findAll()
         return ResponseEntity.ok(applications.map { ConsultantApplicationDTO.from(it) })
+    }
+
+
+    @GetMapping("/admin/user/{id}")
+    @AdminOnly
+    fun getUserProfileById(
+        @PathVariable id: Long
+    ): ResponseEntity<UserProfileResponse> {
+        val user = userService.getUserById(id)
+            ?: throw ApiException(404, "用户不存在")
+        return ResponseEntity.ok(UserProfileResponse.from(user))
     }
 }
 
@@ -61,6 +80,13 @@ data class CreateConsultantRequest(
 
     @field:NotBlank(message = "姓名不能为空")
     val name: String
+)
+
+data class ReviewApplicationRequest(
+    val approve: Boolean,
+
+    @field:Size(max = 300, message = "拒绝原因不能超过300字")
+    val rejectReason: String? = null
 )
 
 

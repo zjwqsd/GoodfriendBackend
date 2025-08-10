@@ -4,11 +4,9 @@ import com.goodfriend.backend.data.ApplicationStatus
 import com.goodfriend.backend.data.Consultant
 import com.goodfriend.backend.data.ConsultantApplication
 import com.goodfriend.backend.data.Gender
-import jakarta.validation.constraints.Min
-import jakarta.validation.constraints.NotBlank
-import jakarta.validation.constraints.Pattern
-import jakarta.validation.constraints.Size
+import jakarta.validation.constraints.*
 import java.time.LocalDateTime
+import com.fasterxml.jackson.annotation.JsonInclude
 
 data class ConsultantApplicationDTO(
     val id: Long,
@@ -18,7 +16,8 @@ data class ConsultantApplicationDTO(
     val specialty: List<String>,
     val reason: String,
     val status: ApplicationStatus,
-    val createdAt: LocalDateTime
+    val createdAt: LocalDateTime,
+    val reviewComment: String? = null
 ) {
     companion object {
         fun from(app: ConsultantApplication) = ConsultantApplicationDTO(
@@ -29,7 +28,8 @@ data class ConsultantApplicationDTO(
             specialty = app.specialty,
             reason = app.reason,
             status = app.status,
-            createdAt = app.createdAt
+            createdAt = app.createdAt,
+            reviewComment = app.reviewComment
         )
     }
 }
@@ -38,6 +38,9 @@ data class UpdateConsultantRequest(
 
     @field:Size(min = 1, max = 20, message = "姓名不能为空")
     val name: String? = null,
+
+    @field:NotNull(message = "性别不能为空")
+    val gender: Gender? = null,
 
     @field:Size(min = 1, max = 50, message = "工作地点不能为空")
     val location: String? = null,
@@ -76,75 +79,54 @@ data class UpdateConsultantRequest(
     val certificationList: List<CertificationDTO>? = null
 )
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 data class ConsultantDTO(
     val id: Long,
     val name: String,
-    val gender: Gender,
-    val location: String,
-    val specialty: List<String>,
-    val level: String,
+    val gender: Gender?,                 // 可空
+    val location: String?,               // "北京·朝阳" 之类
+    val level: String?,                  // 可空
+    val specialty: List<String>?,        // 可空
     val rating: Double,
-    val avatar: String,
+    val avatar: String?,                 // 可空
     val pricePerHour: Int,
-) {
-    companion object {
-        fun from(c: Consultant): ConsultantDTO = ConsultantDTO(
-            id = c.id,
-            name = c.name,
-            gender = c.gender,
-            location = c.location,
-            specialty = c.specialty,
-            level = c.level,
-            rating = c.rating,
-            avatar = c.avatar,
-            pricePerHour = c.pricePerHour
-        )
-    }
-}
 
-data class ConsultantProfileResponse(
-    val id: Long,
-    val phone: String,
-    val name: String,
-    val avatar: String,
-    val gender: Gender,
-    val location: String,
-    val level: String,
-    val specialty: List<String>,
+    // 新增的详细信息
+    val consultationHours: Int,          // 对应“个案时长/咨询时长（小时）”，由 consultationCount 映射
     val experienceYears: Int,
-    val consultationCount: Int,
-    val trainingHours: Int,
-    val supervisionHours: Int,
-    val bio: String,
-    val consultationMethods: List<String>,
-    val availability: String,
-    val pricePerHour: Int,
-    val rating: Double,
-    val educationList: List<EducationDTO>,
-    val experienceList: List<ExperienceDTO>,
-    val certificationList: List<CertificationDTO>
+    val trainingHours: Int?,             // 受训时长（小时）
+    val supervisionHours: Int?,          // 督导时长（小时）
+    val bio: String?,                    // 个人简介
+    val consultationMethods: List<String>?, // 咨询方式
+    val availability: String?,           // 接诊时间
+
+    // 明细列表（可多段）
+    val educationList: List<EducationDTO>?,
+    val experienceList: List<ExperienceDTO>?,
+    val certificationList: List<CertificationDTO>?
 ) {
     companion object {
-        fun from(c: Consultant): ConsultantProfileResponse {
-            return ConsultantProfileResponse(
+        fun from(c: Consultant): ConsultantDTO =
+            ConsultantDTO(
                 id = c.id,
-                phone = c.phone,
                 name = c.name,
-                avatar = c.avatar,
                 gender = c.gender,
                 location = c.location,
                 level = c.level,
                 specialty = c.specialty,
+                rating = c.rating,
+                avatar = c.avatar,
+                pricePerHour = c.pricePerHour,
+
+                consultationHours = c.consultationCount,   // 关键映射
                 experienceYears = c.experienceYears,
-                consultationCount = c.consultationCount,
                 trainingHours = c.trainingHours,
                 supervisionHours = c.supervisionHours,
                 bio = c.bio,
                 consultationMethods = c.consultationMethods,
                 availability = c.availability,
-                pricePerHour = c.pricePerHour,
-                rating = c.rating,
-                educationList = c.educationList.map {
+
+                educationList = c.educationList?.map {
                     EducationDTO(
                         degree = it.degree,
                         school = it.school,
@@ -152,7 +134,7 @@ data class ConsultantProfileResponse(
                         time = it.time
                     )
                 },
-                experienceList = c.experienceList.map {
+                experienceList = c.experienceList?.map {
                     ExperienceDTO(
                         company = it.company,
                         position = it.position,
@@ -160,7 +142,78 @@ data class ConsultantProfileResponse(
                         description = it.description
                     )
                 },
-                certificationList = c.certificationList.map {
+                certificationList = c.certificationList?.map {
+                    CertificationDTO(
+                        name = it.name,
+                        number = it.number,
+                        issuer = it.issuer,
+                        date = it.date
+                    )
+                }
+            )
+    }
+}
+
+@JsonInclude(JsonInclude.Include.NON_NULL) // 可选：序列化时忽略为 null 的字段
+data class ConsultantProfileResponse(
+    val id: Long,
+    val phone: String,
+    val name: String,
+    val avatar: String?,
+    val gender: Gender,
+    val location: String?,
+    val level: String?,
+    val specialty: List<String>?,
+    val experienceYears: Int,
+    val consultationCount: Int,
+    val trainingHours: Int,
+    val supervisionHours: Int,
+    val bio: String?,
+    val consultationMethods: List<String>?,
+    val availability: String?,
+    val pricePerHour: Int,
+    val rating: Double,
+    val educationList: List<EducationDTO>?,
+    val experienceList: List<ExperienceDTO>?,
+    val certificationList: List<CertificationDTO>?
+) {
+    companion object {
+        fun from(c: Consultant): ConsultantProfileResponse {
+            return ConsultantProfileResponse(
+                id = c.id,
+                phone = c.phone,
+                name = c.name,
+                avatar = c.avatar,                 // 允许为 null
+                gender = c.gender,
+                location = c.location,             // 允许为 null
+                level = c.level,                   // 允许为 null
+                specialty = c.specialty,           // 允许为 null
+                experienceYears = c.experienceYears,
+                consultationCount = c.consultationCount,
+                trainingHours = c.trainingHours,
+                supervisionHours = c.supervisionHours,
+                bio = c.bio,                       // 允许为 null
+                consultationMethods = c.consultationMethods,
+                availability = c.availability,
+                pricePerHour = c.pricePerHour,
+                rating = c.rating,
+                educationList = c.educationList?.map {
+                    EducationDTO(
+                        degree = it.degree,
+                        school = it.school,
+                        major = it.major,
+                        time = it.time
+                    )
+                },
+                experienceList = c.experienceList?.map {
+                    ExperienceDTO(
+                        company = it.company,
+                        position = it.position,
+                        duration = it.duration,
+                        description = it.description
+                    )
+                },
+                certificationList = c.certificationList?.map {
                     CertificationDTO(
                         name = it.name,
                         number = it.number,

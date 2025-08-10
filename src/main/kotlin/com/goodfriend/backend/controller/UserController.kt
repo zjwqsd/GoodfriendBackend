@@ -1,5 +1,6 @@
 package com.goodfriend.backend.controller
 
+import com.goodfriend.backend.dto.ConsultantApplicationDTO
 import com.goodfriend.backend.dto.ConsultantApplicationRequest
 import com.goodfriend.backend.dto.UpdateUserRequest
 import com.goodfriend.backend.dto.UserProfileResponse
@@ -54,6 +55,17 @@ class UserController(
         return ResponseEntity.ok(list)
     }
 
+
+    @GetMapping("/consultant/applications")
+    @UserOnly
+    fun listMyConsultantApplications(
+        request: HttpServletRequest,
+        @RequestHeader("Authorization") authHeader: String?
+    ): ResponseEntity<List<ConsultantApplicationDTO>> {
+        val user = currentRoleService.getCurrentUser(request)
+        val list = userService.getUserApplications(user.id)
+        return ResponseEntity.ok(list)
+    }
 
 }
 

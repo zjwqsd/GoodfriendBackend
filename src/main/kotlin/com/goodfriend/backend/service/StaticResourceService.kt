@@ -71,7 +71,7 @@ class StaticResourceService(
                 category = category,
                 filename = filename,
                 description = description,
-                valid = false,
+                valid = true,
                 createdAt = LocalDateTime.now()
             )
             staticRepo.save(resource)

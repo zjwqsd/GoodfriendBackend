@@ -8,4 +8,6 @@ interface ConsultantApplicationRepository : JpaRepository<ConsultantApplication,
     fun existsByUserIdAndStatus(userId: Long, status: ApplicationStatus): Boolean
     fun findAllByStatus(status: ApplicationStatus): List<ConsultantApplication>
     fun findByUserId(userId: Long): List<ConsultantApplication>
+    fun findByUserIdOrderByCreatedAtDesc(userId: Long): List<ConsultantApplication>
+
 }
