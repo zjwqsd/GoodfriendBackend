@@ -2,7 +2,6 @@ package com.goodfriend.backend.controller
 
 import com.goodfriend.backend.dto.ConsultantDTO
 import com.goodfriend.backend.dto.ConsultantProfileResponse
-import com.goodfriend.backend.dto.StaticResourceDTO
 import com.goodfriend.backend.dto.UpdateConsultantRequest
 import com.goodfriend.backend.repository.ConsultantRepository
 import com.goodfriend.backend.security.CurrentRoleService

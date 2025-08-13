@@ -1,7 +1,6 @@
 package com.goodfriend.backend.dto
 
 import com.goodfriend.backend.data.StaticResource
-import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Pattern
 import jakarta.validation.constraints.Size
@@ -46,4 +45,9 @@ data class UploadStaticResourceForm(
 
     @field:NotNull(message = "文件不能为空")
     val file: MultipartFile
+)
+
+data class AvatarItem(
+    val name: String,   // 去掉扩展名的文件名
+    val file: String    // 带扩展名的完整文件名（不含 /upload）
 )

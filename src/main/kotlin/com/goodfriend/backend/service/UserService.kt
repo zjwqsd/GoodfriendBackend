@@ -4,6 +4,7 @@ import com.goodfriend.backend.data.ApplicationStatus
 import com.goodfriend.backend.data.ConsultantApplication
 import com.goodfriend.backend.data.Gender
 import com.goodfriend.backend.data.User
+import com.goodfriend.backend.dto.AvatarItem
 import com.goodfriend.backend.dto.ConsultantApplicationDTO
 import com.goodfriend.backend.dto.ConsultantApplicationRequest
 import com.goodfriend.backend.dto.UpdateUserRequest
@@ -37,7 +38,7 @@ class UserService(
         if (!req.avatar.isNullOrBlank()) {
             val validAvatars = staticResourceRepo.findByScopeAndCategoryAndValid("user", "avatars", true)
             val match = validAvatars.find { it.filename.substringBeforeLast('.') == req.avatar }
-                ?: throw IllegalArgumentException("未找到匹配的头像资源")
+                ?: throw ApiException(400,"未找到匹配的头像资源")
             user.avatar = match.getPathSuffix()
         }
 
@@ -70,9 +71,20 @@ class UserService(
         applicationRepo.save(app)
     }
 
-    fun getAvailableUserAvatarFilenames(): List<String> {
-        return staticResourceRepo.findByScopeAndCategoryAndValid("user", "avatars", true)
-            .map { it.filename.substringBeforeLast('.') } // 去掉扩展名
+
+
+
+    fun getAvailableUserAvatarItems(): List<AvatarItem> {
+        val scope = "user"
+        val category = "avatars"
+        return staticResourceRepo.findByScopeAndCategoryAndValid(scope, category, true)
+            .map { res ->
+                val nameWithoutExt = res.filename.substringBeforeLast('.')
+                AvatarItem(
+                    name = nameWithoutExt,
+                    file = "$scope/$category/${res.filename}"
+                )
+            }
     }
 
     fun updateAvatar(userId: Long, filenameWithoutExt: String) {

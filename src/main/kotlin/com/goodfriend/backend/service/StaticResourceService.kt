@@ -5,6 +5,7 @@ import com.goodfriend.backend.data.Consultant
 import com.goodfriend.backend.data.StaticResource
 import com.goodfriend.backend.dto.StaticResourceDTO
 import com.goodfriend.backend.dto.StaticResourceTree
+import com.goodfriend.backend.exception.ApiException
 import com.goodfriend.backend.repository.ConsultantRepository
 import com.goodfriend.backend.repository.StaticResourceRepository
 import jakarta.annotation.PostConstruct
@@ -37,14 +38,22 @@ class StaticResourceService(
         file: MultipartFile,
         scope: String,
         category: String,
-        filename: String,
+        filename: String, // 改成无后缀的文件名
         description: String?
     ): StaticResource {
         require(scope.matches(Regex("^[a-z]{1,20}$"))) { "scope 不合法" }
         require(category.matches(Regex("^[a-z]{1,20}$"))) { "category 不合法" }
         require(filename.matches(Regex("^[a-z0-9._-]{1,50}$"))) { "文件名不合法" }
 
-        val pathSuffix = "$scope/$category/$filename"
+        // 从上传的文件中提取后缀（不带点）
+        val originalName = file.originalFilename ?: throw ApiException(400,"无法获取原始文件名")
+        val extension = originalName.substringAfterLast('.', "").lowercase()
+        require(extension.isNotEmpty()) { "上传文件必须包含扩展名" }
+
+        // 组合成最终文件名
+        val finalFilename = "$filename.$extension"
+
+        val pathSuffix = "$scope/$category/$finalFilename"
         val targetPath = rootPath.resolve(pathSuffix).normalize()
         Files.createDirectories(targetPath.parent)
 
@@ -55,7 +64,7 @@ class StaticResourceService(
             throw RuntimeException("文件保存失败", e)
         }
 
-        val existing = staticRepo.findByScopeAndCategoryAndFilename(scope, category, filename)
+        val existing = staticRepo.findByScopeAndCategoryAndFilename(scope, category, finalFilename)
         return if (existing != null) {
             // 覆盖已有资源：只更新 description 和 valid 字段
             val updated = existing.copy(
@@ -69,7 +78,7 @@ class StaticResourceService(
             val resource = StaticResource(
                 scope = scope,
                 category = category,
-                filename = filename,
+                filename = finalFilename,
                 description = description,
                 valid = true,
                 createdAt = LocalDateTime.now()

@@ -5,7 +5,6 @@ import com.goodfriend.backend.dto.ConsultantApplicationDTO
 import com.goodfriend.backend.dto.UserProfileResponse
 import com.goodfriend.backend.exception.ApiException
 import com.goodfriend.backend.repository.ConsultantApplicationRepository
-import com.goodfriend.backend.repository.UserRepository
 import com.goodfriend.backend.security.annotation.AdminOnly
 import com.goodfriend.backend.service.AuthService
 import com.goodfriend.backend.service.ConsultantService

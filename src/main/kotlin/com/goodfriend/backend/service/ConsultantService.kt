@@ -1,21 +1,16 @@
 package com.goodfriend.backend.service
 
 import com.goodfriend.backend.data.*
-import com.goodfriend.backend.dto.CertificationDTO
-import com.goodfriend.backend.dto.EducationDTO
-import com.goodfriend.backend.dto.ExperienceDTO
 import com.goodfriend.backend.dto.UpdateConsultantRequest
 import com.goodfriend.backend.exception.ApiException
 import com.goodfriend.backend.repository.ConsultantApplicationRepository
 import com.goodfriend.backend.repository.ConsultantRepository
-import com.goodfriend.backend.repository.UserRepository
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime
 
 @Service
 class ConsultantService(
-    private val userRepo: UserRepository,
     private val consultantRepo: ConsultantRepository,
     private val passwordEncoder: PasswordEncoder,
     private val applicationRepo: ConsultantApplicationRepository,

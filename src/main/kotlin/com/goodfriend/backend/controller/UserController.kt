@@ -1,9 +1,6 @@
 package com.goodfriend.backend.controller
 
-import com.goodfriend.backend.dto.ConsultantApplicationDTO
-import com.goodfriend.backend.dto.ConsultantApplicationRequest
-import com.goodfriend.backend.dto.UpdateUserRequest
-import com.goodfriend.backend.dto.UserProfileResponse
+import com.goodfriend.backend.dto.*
 import com.goodfriend.backend.security.CurrentRoleService
 import com.goodfriend.backend.security.annotation.UserOnly
 import com.goodfriend.backend.service.UserService
@@ -50,8 +47,10 @@ class UserController(
 
     @GetMapping("/avatars")
     @UserOnly
-    fun listAvailableAvatars(): ResponseEntity<List<String>> {
-        val list = userService.getAvailableUserAvatarFilenames()
+    fun listAvailableAvatars(
+        @RequestHeader("Authorization") authHeader: String?
+    ): ResponseEntity<List<AvatarItem>> {
+        val list = userService.getAvailableUserAvatarItems()
         return ResponseEntity.ok(list)
     }
 

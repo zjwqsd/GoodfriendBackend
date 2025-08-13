@@ -126,7 +126,7 @@ data class ConsultantDTO(
                 consultationMethods = c.consultationMethods,
                 availability = c.availability,
 
-                educationList = c.educationList?.map {
+                educationList = c.educationList.map {
                     EducationDTO(
                         degree = it.degree,
                         school = it.school,
@@ -134,7 +134,7 @@ data class ConsultantDTO(
                         time = it.time
                     )
                 },
-                experienceList = c.experienceList?.map {
+                experienceList = c.experienceList.map {
                     ExperienceDTO(
                         company = it.company,
                         position = it.position,
@@ -142,7 +142,7 @@ data class ConsultantDTO(
                         description = it.description
                     )
                 },
-                certificationList = c.certificationList?.map {
+                certificationList = c.certificationList.map {
                     CertificationDTO(
                         name = it.name,
                         number = it.number,
@@ -197,7 +197,7 @@ data class ConsultantProfileResponse(
                 availability = c.availability,
                 pricePerHour = c.pricePerHour,
                 rating = c.rating,
-                educationList = c.educationList?.map {
+                educationList = c.educationList.map {
                     EducationDTO(
                         degree = it.degree,
                         school = it.school,
@@ -205,7 +205,7 @@ data class ConsultantProfileResponse(
                         time = it.time
                     )
                 },
-                experienceList = c.experienceList?.map {
+                experienceList = c.experienceList.map {
                     ExperienceDTO(
                         company = it.company,
                         position = it.position,
@@ -213,7 +213,7 @@ data class ConsultantProfileResponse(
                         description = it.description
                     )
                 },
-                certificationList = c.certificationList?.map {
+                certificationList = c.certificationList.map {
                     CertificationDTO(
                         name = it.name,
                         number = it.number,

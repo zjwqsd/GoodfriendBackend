@@ -1,8 +1,6 @@
 package com.goodfriend.backend.service
 
-import com.goodfriend.backend.data.Consultant
 import com.goodfriend.backend.data.User
-//import com.goodfriend.backend.data.Consultant
 import com.goodfriend.backend.data.Gender
 import com.goodfriend.backend.exception.ApiException
 import com.goodfriend.backend.repository.UserRepository
