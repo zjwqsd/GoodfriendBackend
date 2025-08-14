@@ -14,6 +14,8 @@ import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
+import com.goodfriend.backend.dto.AppointmentResponse
+
 
 @RestController
 @RequestMapping("/api/consultant")
@@ -64,6 +66,17 @@ class ConsultantController(
         staticService.uploadConsultantAvatarAndSet(file, consultant)
         return ResponseEntity.ok().build()
     }
+
+    @GetMapping("/appointments")
+    @ConsultantOnly
+    fun listMyAppointments(
+        request: HttpServletRequest,
+        @RequestHeader("Authorization") authHeader: String?
+    ): ResponseEntity<List<AppointmentResponse>> {
+        val consultant = currentRoleService.getCurrentConsultant(request)
+        return ResponseEntity.ok(consultantService.listAppointmentsOf(consultant))
+    }
+
 
 }
 

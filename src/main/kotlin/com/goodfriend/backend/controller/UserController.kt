@@ -8,6 +8,9 @@ import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import com.goodfriend.backend.dto.CreateAppointmentRequest
+import com.goodfriend.backend.dto.AppointmentResponse
+
 
 @RestController
 @RequestMapping("/api/user")
@@ -88,6 +91,17 @@ class UserController(
         val results = userService.getUserTestResults(user)
         return ResponseEntity.ok(results)
     }
+
+    @GetMapping("/appointments")
+    @UserOnly
+    fun listMyAppointments(
+        request: HttpServletRequest,
+        @RequestHeader("Authorization") authHeader: String?
+    ): ResponseEntity<List<AppointmentResponse>> {
+        val user = currentRoleService.getCurrentUser(request)
+        return ResponseEntity.ok(userService.getMyAppointments(user))
+    }
+
 }
 
 

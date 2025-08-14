@@ -1,12 +1,15 @@
 package com.goodfriend.backend.service
 
 import com.goodfriend.backend.data.*
+import com.goodfriend.backend.dto.AppointmentResponse
 import com.goodfriend.backend.dto.UpdateConsultantRequest
 import com.goodfriend.backend.exception.ApiException
+import com.goodfriend.backend.repository.AppointmentRepository
 import com.goodfriend.backend.repository.ConsultantApplicationRepository
 import com.goodfriend.backend.repository.ConsultantRepository
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
 
 @Service
@@ -14,7 +17,9 @@ class ConsultantService(
     private val consultantRepo: ConsultantRepository,
     private val passwordEncoder: PasswordEncoder,
     private val applicationRepo: ConsultantApplicationRepository,
-    private val consultantRepository: ConsultantRepository
+    private val consultantRepository: ConsultantRepository,
+    private val appointmentRepo: AppointmentRepository
+
 ) {
 
     fun createConsultantAccount(phone: String, password: String, name: String): Consultant {
@@ -125,6 +130,14 @@ class ConsultantService(
 
         application.updatedAt = LocalDateTime.now()
         applicationRepo.save(application)
+
+
+    }
+
+    @Transactional(readOnly = true)
+    fun listAppointmentsOf(consultant: Consultant): List<AppointmentResponse> {
+        return appointmentRepo.findByConsultantOrderByStartTimeDesc(consultant)
+            .map { AppointmentResponse.from(it) }
     }
 
 }
