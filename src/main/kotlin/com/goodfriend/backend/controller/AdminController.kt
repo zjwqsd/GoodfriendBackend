@@ -58,7 +58,7 @@ class AdminController(
     }
 
 
-    @GetMapping("/admin/user/{id}")
+    @GetMapping("/user/{id}")
     @AdminOnly
     fun getUserProfileById(
         @PathVariable id: Long

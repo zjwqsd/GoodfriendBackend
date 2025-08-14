@@ -13,8 +13,15 @@ data class ConsultantApplicationDTO(
     val userId: Long,
     val name: String?,
     val phone: String?,
+    val idCardNumber: String,
+    val education:String,
+    val university: String,
+    val major: String,
+    val licenseNumber:String?,
+    val experienceYears: Int,
     val specialty: List<String>,
     val reason: String,
+    val bio: String,
     val status: ApplicationStatus,
     val createdAt: LocalDateTime,
     val reviewComment: String? = null
@@ -25,11 +32,18 @@ data class ConsultantApplicationDTO(
             userId = app.userId,
             name = app.name,
             phone = app.phone,
+            education = app.education,
+            university = app.university,
+            major = app.major,
+            licenseNumber = app.licenseNumber,
+            experienceYears = app.experienceYears,
+            idCardNumber = app.idCardNumber,
             specialty = app.specialty,
             reason = app.reason,
             status = app.status,
             createdAt = app.createdAt,
-            reviewComment = app.reviewComment
+            bio = app.bio,
+            reviewComment = app.reviewComment,
         )
     }
 }
