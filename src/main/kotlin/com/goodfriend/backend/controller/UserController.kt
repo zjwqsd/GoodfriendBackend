@@ -74,7 +74,7 @@ class UserController(
         @RequestHeader("Authorization") authHeader: String?
     ): ResponseEntity<Void> {
         val user = currentRoleService.getCurrentUser(request)
-        userService.saveTestResult(user.id, req)
+        userService.saveTestResult(user, req)
         return ResponseEntity.ok().build()
     }
 
@@ -85,7 +85,7 @@ class UserController(
         @RequestHeader("Authorization") authHeader: String?
     ): ResponseEntity<List<TestResultResponse>> {
         val user = currentRoleService.getCurrentUser(request)
-        val results = userService.getUserTestResults(user.id)
+        val results = userService.getUserTestResults(user)
         return ResponseEntity.ok(results)
     }
 }

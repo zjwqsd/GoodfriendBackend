@@ -18,6 +18,7 @@ import com.goodfriend.backend.repository.TestResultRepository
 import com.goodfriend.backend.repository.UserRepository
 
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -112,24 +113,18 @@ class UserService(
         return userRepo.findById(id).orElse(null)
     }
 
-    fun saveTestResult(userId: Long, request: SaveTestResultRequest) {
-        val user = userRepo.findById(userId).orElseThrow { RuntimeException("用户不存在") }
-
-
+    fun saveTestResult(user: User, request: SaveTestResultRequest) {
+        // 不再需要根据 userId 再查一次用户
         val testResult = TestResult(
             user = user,
             testName = request.testName,
             score = request.score
         )
-
         testResultRepository.save(testResult)
     }
 
-
-    fun getUserTestResults(userId: Long): List<TestResultResponse> {
-        // 先获取用户对象
-        val user = userRepo.findById(userId).orElseThrow { RuntimeException("用户不存在") }
-
+    @Transactional(readOnly = true)
+    fun getUserTestResults(user: User): List<TestResultResponse> {
         return testResultRepository.findByUserOrderByCreatedAtDesc(user).map {
             TestResultResponse(
                 id = it.id,
