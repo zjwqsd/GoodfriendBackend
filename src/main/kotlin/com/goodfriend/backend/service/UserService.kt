@@ -3,14 +3,18 @@ package com.goodfriend.backend.service
 import com.goodfriend.backend.data.ApplicationStatus
 import com.goodfriend.backend.data.ConsultantApplication
 import com.goodfriend.backend.data.Gender
+import com.goodfriend.backend.data.TestResult
 import com.goodfriend.backend.data.User
 import com.goodfriend.backend.dto.AvatarItem
 import com.goodfriend.backend.dto.ConsultantApplicationDTO
 import com.goodfriend.backend.dto.ConsultantApplicationRequest
+import com.goodfriend.backend.dto.SaveTestResultRequest
+import com.goodfriend.backend.dto.TestResultResponse
 import com.goodfriend.backend.dto.UpdateUserRequest
 import com.goodfriend.backend.exception.ApiException
 import com.goodfriend.backend.repository.ConsultantApplicationRepository
 import com.goodfriend.backend.repository.StaticResourceRepository
+import com.goodfriend.backend.repository.TestResultRepository
 import com.goodfriend.backend.repository.UserRepository
 
 import org.springframework.stereotype.Service
@@ -21,7 +25,8 @@ import java.time.LocalDateTime
 class UserService(
     private val userRepo: UserRepository,
     private val applicationRepo: ConsultantApplicationRepository,
-    private val staticResourceRepo: StaticResourceRepository
+    private val staticResourceRepo: StaticResourceRepository,
+    private val testResultRepository: TestResultRepository
 ) {
 
     fun updateUserInfo(userId: Long, req: UpdateUserRequest) {
@@ -105,5 +110,33 @@ class UserService(
 
     fun getUserById(id: Long): User? {
         return userRepo.findById(id).orElse(null)
+    }
+
+    fun saveTestResult(userId: Long, request: SaveTestResultRequest) {
+        val user = userRepo.findById(userId).orElseThrow { RuntimeException("用户不存在") }
+
+
+        val testResult = TestResult(
+            user = user,
+            testName = request.testName,
+            score = request.score
+        )
+
+        testResultRepository.save(testResult)
+    }
+
+
+    fun getUserTestResults(userId: Long): List<TestResultResponse> {
+        // 先获取用户对象
+        val user = userRepo.findById(userId).orElseThrow { RuntimeException("用户不存在") }
+
+        return testResultRepository.findByUserOrderByCreatedAtDesc(user).map {
+            TestResultResponse(
+                id = it.id,
+                testName = it.testName,
+                score = it.score,
+                createdAt = it.createdAt.toString()
+            )
+        }
     }
 }

@@ -46,7 +46,8 @@ dependencies {
     runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.11.5")
     implementation("org.springframework.security:spring-security-crypto")
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.9")
-
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
 
 }
 

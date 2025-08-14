@@ -58,3 +58,14 @@ data class UserProfileResponse(
     }
 }
 
+data class SaveTestResultRequest(
+    val testName: String,
+    val score: Double
+)
+
+data class TestResultResponse(
+    val id: Long,
+    val testName: String,
+    val score: Double,
+    val createdAt: String
+)

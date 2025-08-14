@@ -66,6 +66,28 @@ class UserController(
         return ResponseEntity.ok(list)
     }
 
+    @PostMapping("/tests")
+    @UserOnly
+    fun saveTestResult(
+        @RequestBody @Valid req: SaveTestResultRequest,
+        request: HttpServletRequest,
+        @RequestHeader("Authorization") authHeader: String?
+    ): ResponseEntity<Void> {
+        val user = currentRoleService.getCurrentUser(request)
+        userService.saveTestResult(user.id, req)
+        return ResponseEntity.ok().build()
+    }
+
+    @GetMapping("/tests")
+    @UserOnly
+    fun getTestResults(
+        request: HttpServletRequest,
+        @RequestHeader("Authorization") authHeader: String?
+    ): ResponseEntity<List<TestResultResponse>> {
+        val user = currentRoleService.getCurrentUser(request)
+        val results = userService.getUserTestResults(user.id)
+        return ResponseEntity.ok(results)
+    }
 }
 
 

@@ -40,6 +40,28 @@ data class User(
 )
 
 @Entity
+@Table(name = "test_results")
+data class TestResult(
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    val id: Long = 0,
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    val user: User,
+
+    @Column(nullable = false)
+    var testName: String,  // 测试名称
+
+    @Column(nullable = false)
+    var score: Double,      // 测试总分
+
+
+    @Column(name = "created_at", updatable = false)
+    val createdAt: LocalDateTime = LocalDateTime.now()
+)
+
+@Entity
 @Table(name = "consultants")
 data class Consultant(
     @Id
