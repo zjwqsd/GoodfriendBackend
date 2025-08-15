@@ -15,6 +15,8 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 import com.goodfriend.backend.dto.AppointmentResponse
+import com.goodfriend.backend.dto.ReviewResponse
+import com.goodfriend.backend.dto.ConsultantReviewStatsResponse
 
 
 @RestController
@@ -75,6 +77,26 @@ class ConsultantController(
     ): ResponseEntity<List<AppointmentResponse>> {
         val consultant = currentRoleService.getCurrentConsultant(request)
         return ResponseEntity.ok(consultantService.listAppointmentsOf(consultant))
+    }
+
+    @GetMapping("/reviews")
+    @ConsultantOnly
+    fun listMyReviews(
+        request: HttpServletRequest,
+        @RequestHeader("Authorization") authHeader: String?
+    ): ResponseEntity<List<ReviewResponse>> {
+        val consultant = currentRoleService.getCurrentConsultant(request)
+        return ResponseEntity.ok(consultantService.listMyReviews(consultant))
+    }
+
+    @GetMapping("/reviews/stats")
+    @ConsultantOnly
+    fun myReviewStats(
+        request: HttpServletRequest,
+        @RequestHeader("Authorization") authHeader: String?
+    ): ResponseEntity<ConsultantReviewStatsResponse> {
+        val consultant = currentRoleService.getCurrentConsultant(request)
+        return ResponseEntity.ok(consultantService.reviewStats(consultant))
     }
 
 

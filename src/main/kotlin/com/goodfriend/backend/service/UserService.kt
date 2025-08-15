@@ -28,7 +28,10 @@ import com.goodfriend.backend.dto.CreateAppointmentRequest
 import java.net.URI
 import java.time.Duration
 import java.time.LocalDateTime
-
+import com.goodfriend.backend.dto.CreateReviewRequest
+import com.goodfriend.backend.data.Review
+import com.goodfriend.backend.dto.ReviewResponse
+import com.goodfriend.backend.repository.ReviewRepository
 
 
 @Service
@@ -38,7 +41,8 @@ class UserService(
     private val staticResourceRepo: StaticResourceRepository,
     private val testResultRepository: TestResultRepository,
     private val consultantRepo: ConsultantRepository,
-    private val appointmentRepo: AppointmentRepository
+    private val appointmentRepo: AppointmentRepository,
+    private val reviewRepo: ReviewRepository
 ) {
 
     fun updateUserInfo(userId: Long, req: UpdateUserRequest) {
@@ -198,5 +202,62 @@ class UserService(
         appt.status = AppointmentStatus.CANCELLED
         appt.updatedAt = LocalDateTime.now()
         appointmentRepo.save(appt)
+    }
+
+    @Transactional
+    fun createReview(user: User, req: CreateReviewRequest): Review {
+        val consultantId = req.consultantId ?: throw ApiException(400, "consultantId 不能为空")
+        val consultant = consultantRepo.findById(consultantId)
+            .orElseThrow { ApiException(404, "咨询师不存在") }
+
+        val rating = req.rating ?: throw ApiException(400, "rating 不能为空")
+        if (rating !in 1..5) throw ApiException(400, "rating 必须在 1~5 之间")
+
+        var appointment: Appointment? = null
+        req.appointmentId?.let { apptId ->
+            // 校验预约存在、归属该用户和该咨询师、并且已结束
+            appointment = appointmentRepo.findById(apptId)
+                .orElseThrow { ApiException(404, "预约不存在") }
+            val a = appointment!!
+            if (a.user.id != user.id) throw ApiException(403, "无权评价他人的预约")
+            if (a.consultant.id != consultantId) throw ApiException(400, "预约不属于该咨询师")
+            if (a.status == AppointmentStatus.CANCELLED) throw ApiException(400, "已取消的预约不可评价")
+            if (LocalDateTime.now().isBefore(a.endTime)) throw ApiException(400, "预约尚未结束，暂不可评价")
+
+            if (reviewRepo.existsByAppointment_IdAndUser_Id(apptId, user.id)) {
+                throw ApiException(409, "该预约已评价")
+            }
+        }
+
+        // 处理标签（去空白、去重、最多 5 个、小写）
+        val tags = req.tags.orEmpty()
+            .map { it.trim() }
+            .filter { it.isNotEmpty() }
+            .distinct()
+            .take(5)
+            .map { it.lowercase() }
+
+        val review = Review(
+            user = user,
+            consultant = consultant,
+            appointment = appointment,
+            rating = rating,
+            content = req.content?.trim(),
+            tags = tags
+        )
+        val saved = reviewRepo.save(review)
+
+        // 更新咨询师平均评分（基于所有评论重算，简单可靠）
+        val avg = reviewRepo.avgRatingByConsultant(consultant) ?: 0.0
+        consultant.rating = String.format("%.2f", avg).toDouble()
+        consultant.updatedAt = LocalDateTime.now()
+        consultantRepo.save(consultant)
+
+        return saved
+    }
+
+    @Transactional(readOnly = true)
+    fun getMyReviews(user: User): List<ReviewResponse> {
+        return reviewRepo.findByUserOrderByCreatedAtDesc(user).map { ReviewResponse.from(it) }
     }
 }

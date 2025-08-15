@@ -1,5 +1,6 @@
 package com.goodfriend.backend.controller
 
+import com.goodfriend.backend.dto.AdminAppointmentResponse
 import com.goodfriend.backend.dto.AdminLoginRequest
 import com.goodfriend.backend.dto.ConsultantApplicationDTO
 import com.goodfriend.backend.dto.UserProfileResponse
@@ -13,6 +14,9 @@ import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
 import jakarta.validation.constraints.*
 import org.springframework.web.bind.annotation.*
+import com.goodfriend.backend.repository.AppointmentRepository
+import org.springframework.data.domain.Sort
+
 
 @RestController
 @RequestMapping("/api/admin")
@@ -20,7 +24,8 @@ class AdminController(
     private val consultantService: ConsultantService,
     private val authService: AuthService,
     private val applicationRepo: ConsultantApplicationRepository,
-    private val userService: UserService
+    private val userService: UserService,
+    private val appointmentRepo: AppointmentRepository
 ) {
 
     @PostMapping("/consultant/create")
@@ -67,6 +72,18 @@ class AdminController(
             ?: throw ApiException(404, "用户不存在")
         return ResponseEntity.ok(UserProfileResponse.from(user))
     }
+
+    @GetMapping("/appointments")
+    @AdminOnly
+    fun listAllAppointments(
+        @RequestHeader("Authorization") authHeader: String?
+    ): ResponseEntity<List<AdminAppointmentResponse>> {
+        val list = appointmentRepo
+            .findAll(Sort.by(Sort.Direction.DESC, "startTime"))
+            .map { AdminAppointmentResponse.from(it) }
+        return ResponseEntity.ok(list)
+    }
+
 }
 
 data class CreateConsultantRequest(

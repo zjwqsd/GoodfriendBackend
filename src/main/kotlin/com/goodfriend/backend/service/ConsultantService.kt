@@ -11,6 +11,10 @@ import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
+import com.goodfriend.backend.dto.ReviewResponse
+import com.goodfriend.backend.dto.ConsultantReviewStatsResponse
+import com.goodfriend.backend.dto.TagCount
+import com.goodfriend.backend.repository.ReviewRepository
 
 @Service
 class ConsultantService(
@@ -18,8 +22,8 @@ class ConsultantService(
     private val passwordEncoder: PasswordEncoder,
     private val applicationRepo: ConsultantApplicationRepository,
     private val consultantRepository: ConsultantRepository,
-    private val appointmentRepo: AppointmentRepository
-
+    private val appointmentRepo: AppointmentRepository,
+    private val reviewRepo: ReviewRepository
 ) {
 
     fun createConsultantAccount(phone: String, password: String, name: String): Consultant {
@@ -140,4 +144,28 @@ class ConsultantService(
             .map { AppointmentResponse.from(it) }
     }
 
+    @Transactional(readOnly = true)
+    fun listMyReviews(consultant: Consultant): List<ReviewResponse> {
+        return reviewRepo.findByConsultantOrderByCreatedAtDesc(consultant)
+            .map { ReviewResponse.from(it) }
+    }
+
+    @Transactional(readOnly = true)
+    fun reviewStats(consultant: Consultant): ConsultantReviewStatsResponse {
+        val reviews = reviewRepo.findByConsultantOrderByCreatedAtDesc(consultant)
+        val avg = if (reviews.isEmpty()) 0.0 else reviews.map { it.rating }.average()
+        val tagCounts = reviews.flatMap { it.tags }
+            .groupingBy { it }
+            .eachCount()
+            .entries
+            .sortedByDescending { it.value }
+            .map { TagCount(it.key, it.value.toLong()) }
+
+        return ConsultantReviewStatsResponse(
+            consultantId = consultant.id,
+            avgRating = String.format("%.2f", avg).toDouble(),
+            totalReviews = reviews.size.toLong(),
+            tags = tagCounts
+        )
+    }
 }

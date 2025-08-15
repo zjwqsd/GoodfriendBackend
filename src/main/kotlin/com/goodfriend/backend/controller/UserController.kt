@@ -8,8 +8,11 @@ import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
-import com.goodfriend.backend.dto.CreateAppointmentRequest
 import com.goodfriend.backend.dto.AppointmentResponse
+import java.net.URI
+import com.goodfriend.backend.dto.CreateAppointmentRequest
+import com.goodfriend.backend.dto.CreateReviewRequest
+import com.goodfriend.backend.dto.ReviewResponse
 
 
 @RestController
@@ -92,6 +95,7 @@ class UserController(
         return ResponseEntity.ok(results)
     }
 
+
     @GetMapping("/appointments")
     @UserOnly
     fun listMyAppointments(
@@ -101,6 +105,29 @@ class UserController(
         val user = currentRoleService.getCurrentUser(request)
         return ResponseEntity.ok(userService.getMyAppointments(user))
     }
+
+    @PostMapping("/reviews")
+    @UserOnly
+    fun createReview(
+        @RequestBody @Valid req: CreateReviewRequest,
+        request: HttpServletRequest,
+        @RequestHeader("Authorization") authHeader: String?
+    ): ResponseEntity<Void> {
+        val user = currentRoleService.getCurrentUser(request)
+        val saved = userService.createReview(user, req)
+        return ResponseEntity.created(URI.create("/api/user/reviews/${saved.id}")).build()
+    }
+
+    @GetMapping("/reviews")
+    @UserOnly
+    fun listMyReviews(
+        request: HttpServletRequest,
+        @RequestHeader("Authorization") authHeader: String?
+    ): ResponseEntity<List<ReviewResponse>> {
+        val user = currentRoleService.getCurrentUser(request)
+        return ResponseEntity.ok(userService.getMyReviews(user))
+    }
+
 
 }
 
