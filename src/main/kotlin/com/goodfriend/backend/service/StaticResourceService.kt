@@ -130,7 +130,7 @@ class StaticResourceService(
         }
 
         // 2. 文件名固定为 {id}.{ext}
-        val filename = "${consultant.id}.$extension"
+        val filename = "${consultant.id}"
 
         // 3. 上传文件
         val resource = uploadStaticFile(
