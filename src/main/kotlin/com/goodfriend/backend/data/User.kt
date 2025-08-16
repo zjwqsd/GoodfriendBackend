@@ -79,12 +79,12 @@ data class Consultant(
 
     @Convert(converter = StringListConverter::class)
     @Column(columnDefinition = "TEXT")
-    var specialty: List<String> = listOf("情感关系"),
+    var specialty: List<String>? = null,
 
     @Enumerated(EnumType.STRING)
     var gender: Gender = Gender.UNKNOWN,
 
-    var location: String = "未知",
+    var location: String? = null,
 
     var rating: Double = 0.0,
 

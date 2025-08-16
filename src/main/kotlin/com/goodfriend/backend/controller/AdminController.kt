@@ -62,6 +62,15 @@ class AdminController(
         return ResponseEntity.ok(applications.map { ConsultantApplicationDTO.from(it) })
     }
 
+    @GetMapping("/users")
+    @AdminOnly
+    fun getAllUserProfiles(
+        @RequestHeader("Authorization") authHeader: String?
+    ): ResponseEntity<List<UserProfileResponse>> {
+        val users = userService.getAllUsers()
+        return ResponseEntity.ok(users)
+    }
+
 
     @GetMapping("/user/{id}")
     @AdminOnly
@@ -70,7 +79,9 @@ class AdminController(
     ): ResponseEntity<UserProfileResponse> {
         val user = userService.getUserById(id)
             ?: throw ApiException(404, "用户不存在")
-        return ResponseEntity.ok(UserProfileResponse.from(user))
+        return ResponseEntity.ok()
+            .header("message", "查询成功")  // 添加自定义 message 头
+            .body(UserProfileResponse.from(user))
     }
 
     @GetMapping("/appointments")

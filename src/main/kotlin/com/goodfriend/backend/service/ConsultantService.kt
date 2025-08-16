@@ -35,9 +35,9 @@ class ConsultantService(
             password = passwordEncoder.encode(password), // 密码建议加密，视使用场景决定是否延后处理
             name = name,
             gender = Gender.UNKNOWN,
-            location = "未知",
+            location = null,
             level = "普通咨询师",
-            specialty = listOf("未填写"),
+            specialty = null,
             rating = 0.0,
             avatar = "consultant/avatars/default.jpg",
             experienceYears = 0,

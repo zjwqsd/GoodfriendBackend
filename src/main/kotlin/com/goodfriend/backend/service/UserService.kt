@@ -31,6 +31,7 @@ import java.time.LocalDateTime
 import com.goodfriend.backend.dto.CreateReviewRequest
 import com.goodfriend.backend.data.Review
 import com.goodfriend.backend.dto.ReviewResponse
+import com.goodfriend.backend.dto.UserProfileResponse
 import com.goodfriend.backend.repository.ReviewRepository
 
 
@@ -122,6 +123,10 @@ class UserService(
     fun getUserApplications(userId: Long): List<ConsultantApplicationDTO> {
         return applicationRepo.findByUserIdOrderByCreatedAtDesc(userId)
             .map { ConsultantApplicationDTO.from(it) }
+    }
+
+    fun getAllUsers(): List<UserProfileResponse> {
+        return userRepo.findAll().map { UserProfileResponse.from(it) }
     }
 
     fun getUserById(id: Long): User? {

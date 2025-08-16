@@ -33,26 +33,26 @@ data class UpdateUserRequest(
 data class UserProfileResponse(
     val id: Long,
     val phone: String,
-    val name: String,
-    val avatar: String,
-    val birthday: LocalDate?,
-    val age: Int,
-    val gender: Gender,
-    val region: String,
-    val hobby: String?
+    val name: String? = null,  // 改为可空类型
+    val avatar: String? = null,  // 改为可空类型
+    val birthday: LocalDate? = null,
+    val age: Int? = null,  // 改为可空类型
+    val gender: Gender? = null,  // 改为可空类型
+    val region: String? = null,  // 改为可空类型
+    val hobby: String? = null  // 改为可空类型
 ) {
     companion object {
         fun from(user: User): UserProfileResponse {
             return UserProfileResponse(
                 id = user.id,
                 phone = user.phone,
-                name = user.name,
-                avatar = user.avatar,
+                name = if (user.name.isBlank()) null else user.name,  // 如果为空字符串，返回 null
+                avatar = if (user.avatar == "user/avatars/default.jpg") null else user.avatar,  // 如果是默认头像，返回 null
                 birthday = user.birthday,
-                age = user.age,
-                gender = user.gender,
-                region = user.region,
-                hobby = user.hobby
+                age = if (user.age <= 0) null else user.age,  // 如果年龄 <= 0，返回 null
+                gender = user.gender.takeIf { it != Gender.UNKNOWN },  // 如果性别是未知，返回 null
+                region = if (user.region == "未知") null else user.region,  // 如果地域是"未知"，返回 null
+                hobby = user.hobby?.takeIf { it.isNotBlank() }  // 如果爱好为空，返回 null
             )
         }
     }

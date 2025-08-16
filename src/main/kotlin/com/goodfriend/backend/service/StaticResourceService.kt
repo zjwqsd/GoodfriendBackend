@@ -10,9 +10,6 @@ import com.goodfriend.backend.repository.ConsultantRepository
 import com.goodfriend.backend.repository.StaticResourceRepository
 import jakarta.annotation.PostConstruct
 //import org.springframework.beans.factory.annotation.Value
-import org.springframework.data.domain.Page
-import org.springframework.data.domain.PageRequest
-import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.web.multipart.MultipartFile
 import java.io.IOException
@@ -25,7 +22,7 @@ import java.time.LocalDateTime
 class StaticResourceService(
     private val staticRepo: StaticResourceRepository,
     private val storageProps: FileStorageProperties,
-    private val consultantRepo: ConsultantRepository,
+    private val consultantRepo: ConsultantRepository
 ) {
     private lateinit var rootPath: Path
     @PostConstruct
@@ -51,7 +48,12 @@ class StaticResourceService(
         require(extension.isNotEmpty()) { "上传文件必须包含扩展名" }
 
         // 组合成最终文件名
-        val finalFilename = "$filename.$extension"
+        val hasExt = filename.contains('.') && filename.substringAfterLast('.').isNotBlank()
+        val finalFilename = if (hasExt) {
+            filename
+        } else {
+            "$filename.$extension"
+        }
 
         val pathSuffix = "$scope/$category/$finalFilename"
         val targetPath = rootPath.resolve(pathSuffix).normalize()
