@@ -5,6 +5,10 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import jakarta.persistence.*
 import java.time.LocalDate
 import java.time.LocalDateTime
+import jakarta.persistence.Entity
+import jakarta.persistence.GeneratedValue
+import jakarta.persistence.GenerationType
+import jakarta.persistence.Id
 
 @Entity
 @Table(name = "users")
@@ -215,4 +219,11 @@ class CertificationListConverter : AttributeConverter<List<Certification>, Strin
     }
 }
 
-
+@Entity
+data class Admin(
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    val id: Long = 0,
+    val username: String,
+    val password: String
+)

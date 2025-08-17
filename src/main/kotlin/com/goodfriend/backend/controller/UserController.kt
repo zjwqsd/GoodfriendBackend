@@ -13,6 +13,7 @@ import java.net.URI
 import com.goodfriend.backend.dto.CreateAppointmentRequest
 import com.goodfriend.backend.dto.CreateReviewRequest
 import com.goodfriend.backend.dto.ReviewResponse
+import com.goodfriend.backend.security.annotation.AdminOnly
 
 
 @RestController
@@ -34,11 +35,13 @@ class UserController(
         return ResponseEntity.ok().build()
     }
 
-    @GetMapping("/profile")
-    @UserOnly
-    fun getUserProfile(request: HttpServletRequest, @RequestHeader("Authorization") authHeader: String?): ResponseEntity<UserProfileResponse> {
-        val user = currentRoleService.getCurrentUser(request)
-        return ResponseEntity.ok(UserProfileResponse.from(user))
+    @GetMapping("/users")
+    @AdminOnly
+    fun getAllUserProfiles(
+        @RequestHeader("Authorization") authHeader: String?
+    ): ResponseEntity<List<UserProfileResponse>> {
+        val users = userService.getAllUsers() // List<UserProfileResponse>
+        return ResponseEntity.ok(users)
     }
 
 
