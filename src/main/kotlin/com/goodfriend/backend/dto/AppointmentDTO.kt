@@ -31,10 +31,14 @@ data class AppointmentResponse(
     val endTime: String,
     val status: AppointmentStatus,
     val note: String?,
-    val createdAt: String
+    val createdAt: String,
+    val testResults: List<TestResultResponse> = emptyList()
 ) {
     companion object {
-        fun from(a: Appointment): AppointmentResponse {
+        fun from(a: Appointment,
+                 testResults: List<TestResultResponse> = emptyList()
+        ): AppointmentResponse {
+
             return AppointmentResponse(
                 id = a.id,
                 consultantId = a.consultant.id,
@@ -43,7 +47,8 @@ data class AppointmentResponse(
                 endTime = a.endTime.toString(),
                 status = a.status,
                 note = a.note,
-                createdAt = a.createdAt.toString()
+                createdAt = a.createdAt.toString(),
+                testResults = testResults
             )
         }
     }

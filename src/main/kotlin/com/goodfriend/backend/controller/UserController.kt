@@ -13,6 +13,7 @@ import java.net.URI
 import com.goodfriend.backend.dto.CreateAppointmentRequest
 import com.goodfriend.backend.dto.CreateReviewRequest
 import com.goodfriend.backend.dto.ReviewResponse
+import com.goodfriend.backend.exception.ApiException
 import com.goodfriend.backend.repository.AppointmentRepository
 import com.goodfriend.backend.service.AppointmentService
 
@@ -110,6 +111,19 @@ class UserController(
         userService.deleteMyTestResult(user, id)
         return ResponseEntity.noContent().build()
     }
+
+    @DeleteMapping("/tests")
+    @UserOnly
+    fun deleteAllMyTestResults(
+        request: HttpServletRequest,
+        @RequestParam(name = "all", defaultValue = "false") all: Boolean
+    ): ResponseEntity<Map<String, Any>> {
+        if (!all) throw ApiException(400, "若要删除全部测试结果，请传参 all=true") as Throwable
+        val user = currentRoleService.getCurrentUser(request)
+        val deleted = userService.deleteAllMyTestResults(user)
+        return ResponseEntity.ok(mapOf("deleted" to deleted))
+    }
+
 
 
     @GetMapping("/appointments")

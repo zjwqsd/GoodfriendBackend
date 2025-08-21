@@ -168,6 +168,11 @@ class UserService(
     }
 
     @Transactional
+    fun deleteAllMyTestResults(current: User): Int {
+        return testResultRepository.deleteByUserId(current.id)
+    }
+
+    @Transactional
     fun createReview(user: User, req: CreateReviewRequest): Review {
         val consultantId = req.consultantId ?: throw ApiException(400, "consultantId 不能为空")
         val consultant = consultantRepo.findById(consultantId)

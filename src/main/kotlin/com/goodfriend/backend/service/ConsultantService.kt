@@ -14,7 +14,9 @@ import java.time.LocalDateTime
 import com.goodfriend.backend.dto.ReviewResponse
 import com.goodfriend.backend.dto.ConsultantReviewStatsResponse
 import com.goodfriend.backend.dto.TagCount
+import com.goodfriend.backend.dto.TestResultResponse
 import com.goodfriend.backend.repository.ReviewRepository
+import com.goodfriend.backend.repository.TestResultRepository
 
 @Service
 class ConsultantService(
@@ -23,7 +25,8 @@ class ConsultantService(
     private val applicationRepo: ConsultantApplicationRepository,
     private val consultantRepository: ConsultantRepository,
     private val appointmentRepo: AppointmentRepository,
-    private val reviewRepo: ReviewRepository
+    private val reviewRepo: ReviewRepository,
+    private val testResultRepository: TestResultRepository
 ) {
 
     fun createConsultantAccount(phone: String, password: String, name: String): Consultant {
@@ -141,8 +144,32 @@ class ConsultantService(
 
     @Transactional(readOnly = true)
     fun listAppointmentsOf(consultant: Consultant): List<AppointmentResponse> {
-        return appointmentRepo.findByConsultantOrderByStartTimeDesc(consultant)
-            .map { AppointmentResponse.from(it) }
+        val appts = appointmentRepo.findByConsultantOrderByStartTimeDesc(consultant)
+        if (appts.isEmpty()) return emptyList()
+
+        // 收集本次结果中涉及的所有来访者（User）
+        val users = appts.map { it.user }.distinctBy { it.id }
+
+        // 为每位用户取最近 3 条测评，并转成 DTO
+        val recentMap: Map<Long, List<TestResultResponse>> = users.associate { user ->
+            val trs = testResultRepository.findTop3ByUserOrderByCreatedAtDesc(user)
+            user.id to trs.map {
+                TestResultResponse(
+                    id = it.id,
+                    testName = it.testName,
+                    score = it.score,
+                    createdAt = it.createdAt.toString()
+                )
+            }
+        }
+
+        // 组装响应
+        return appts.map { a ->
+            AppointmentResponse.from(
+                a = a,
+                testResults = recentMap[a.user.id] ?: emptyList()
+            )
+        }
     }
 
     @Transactional(readOnly = true)
