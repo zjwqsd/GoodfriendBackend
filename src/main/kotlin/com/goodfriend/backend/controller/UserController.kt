@@ -13,13 +13,17 @@ import java.net.URI
 import com.goodfriend.backend.dto.CreateAppointmentRequest
 import com.goodfriend.backend.dto.CreateReviewRequest
 import com.goodfriend.backend.dto.ReviewResponse
+import com.goodfriend.backend.repository.AppointmentRepository
+import com.goodfriend.backend.service.AppointmentService
 
 
 @RestController
 @RequestMapping("/api/user")
 class UserController(
     private val userService: UserService,
-    private val currentRoleService: CurrentRoleService
+    private val currentRoleService: CurrentRoleService,
+    private val appointmentRepo: AppointmentRepository,
+    private val appointmentService: AppointmentService
 ) {
 
     @PutMapping("/update")
@@ -98,13 +102,33 @@ class UserController(
 
     @GetMapping("/appointments")
     @UserOnly
-    fun listMyAppointments(
-        request: HttpServletRequest,
-        @RequestHeader("Authorization") authHeader: String?
-    ): ResponseEntity<List<AppointmentResponse>> {
+    fun listMyAppointments(request: HttpServletRequest): ResponseEntity<List<AppointmentResponse>> {
         val user = currentRoleService.getCurrentUser(request)
-        return ResponseEntity.ok(userService.getMyAppointments(user))
+        return ResponseEntity.ok(appointmentService.getMyAppointments(user))
     }
+
+    @PostMapping("/appointments")
+    @UserOnly
+    fun createMyAppointment(
+        request: HttpServletRequest,
+        @Valid @RequestBody req: CreateAppointmentRequest
+    ): ResponseEntity<AppointmentResponse> {
+        val user = currentRoleService.getCurrentUser(request)
+        val appt = appointmentService.createAppointment(user, req)
+        return ResponseEntity.status(201).body(AppointmentResponse.from(appt))
+    }
+
+    @DeleteMapping("/appointments/{id}")
+    @UserOnly
+    fun cancelMyAppointment(
+        request: HttpServletRequest,
+        @PathVariable id: Long
+    ): ResponseEntity<Void> {
+        val user = currentRoleService.getCurrentUser(request)
+        appointmentService.cancelMyAppointment(user, id)
+        return ResponseEntity.noContent().build()
+    }
+
 
     @PostMapping("/reviews")
     @UserOnly

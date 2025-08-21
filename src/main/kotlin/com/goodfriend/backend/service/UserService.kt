@@ -155,59 +155,59 @@ class UserService(
         }
     }
 
-    @Transactional
-    fun createAppointment(user: User, req: CreateAppointmentRequest): Appointment {
-        val consultantId = req.consultantId ?: throw ApiException(400, "consultantId 不能为空")
-        val start = req.startTime ?: throw ApiException(400, "startTime 不能为空")
-        val end = req.endTime ?: throw ApiException(400, "endTime 不能为空")
-
-        if (!end.isAfter(start)) throw ApiException(400, "结束时间必须晚于开始时间")
-
-        // 可以按需限制预约时长（例如 30 分钟~3 小时）
-        val minutes = Duration.between(start, end).toMinutes()
-        if (minutes < 15) throw ApiException(400, "预约时长不能少于 15 分钟")
-        if (minutes > 180) throw ApiException(400, "预约时长不能超过 180 分钟")
-
-        val consultant = consultantRepo.findById(consultantId)
-            .orElseThrow { ApiException(404, "咨询师不存在") }
-
-        // 冲突检测（仅检查咨询师在该时间段的其他活跃预约）
-        val hasConflict = appointmentRepo.existsConsultantTimeOverlap(consultant, start, end)
-        if (hasConflict) throw ApiException(409, "该时间段已被占用，请选择其他时间")
-
-        val appt = Appointment(
-            user = user,
-            consultant = consultant,
-            startTime = start,
-            endTime = end,
-            status = AppointmentStatus.PENDING,
-            note = req.note
-        )
-        return appointmentRepo.save(appt)
-    }
-
-    /**
-     * 查询我的预约
-     */
-    @Transactional(readOnly = true)
-    fun getMyAppointments(user: User): List<AppointmentResponse> {
-        return appointmentRepo.findByUserOrderByStartTimeDesc(user).map { AppointmentResponse.from(it) }
-    }
-
-    /**
-     * 取消我的预约（仅允许取消自己的且未开始的预约）
-     */
-    @Transactional
-    fun cancelMyAppointment(user: User, appointmentId: Long) {
-        val appt = appointmentRepo.findById(appointmentId).orElseThrow { ApiException(404, "预约不存在") }
-        if (appt.user.id != user.id) throw ApiException(403, "无权取消他人预约")
-        if (!LocalDateTime.now().isBefore(appt.startTime)) throw ApiException(400, "已开始或已过期的预约不可取消")
-        if (appt.status == AppointmentStatus.CANCELLED) return
-
-        appt.status = AppointmentStatus.CANCELLED
-        appt.updatedAt = LocalDateTime.now()
-        appointmentRepo.save(appt)
-    }
+//    @Transactional
+//    fun createAppointment(user: User, req: CreateAppointmentRequest): Appointment {
+//        val consultantId = req.consultantId ?: throw ApiException(400, "consultantId 不能为空")
+//        val start = req.startTime ?: throw ApiException(400, "startTime 不能为空")
+//        val end = req.endTime ?: throw ApiException(400, "endTime 不能为空")
+//
+//        if (!end.isAfter(start)) throw ApiException(400, "结束时间必须晚于开始时间")
+//
+//        // 可以按需限制预约时长（例如 30 分钟~3 小时）
+//        val minutes = Duration.between(start, end).toMinutes()
+//        if (minutes < 15) throw ApiException(400, "预约时长不能少于 15 分钟")
+//        if (minutes > 180) throw ApiException(400, "预约时长不能超过 180 分钟")
+//
+//        val consultant = consultantRepo.findById(consultantId)
+//            .orElseThrow { ApiException(404, "咨询师不存在") }
+//
+//        // 冲突检测（仅检查咨询师在该时间段的其他活跃预约）
+//        val hasConflict = appointmentRepo.existsConsultantTimeOverlap(consultant, start, end)
+//        if (hasConflict) throw ApiException(409, "该时间段已被占用，请选择其他时间")
+//
+//        val appt = Appointment(
+//            user = user,
+//            consultant = consultant,
+//            startTime = start,
+//            endTime = end,
+//            status = AppointmentStatus.PENDING,
+//            note = req.note
+//        )
+//        return appointmentRepo.save(appt)
+//    }
+//
+//    /**
+//     * 查询我的预约
+//     */
+//    @Transactional(readOnly = true)
+//    fun getMyAppointments(user: User): List<AppointmentResponse> {
+//        return appointmentRepo.findByUserOrderByStartTimeDesc(user).map { AppointmentResponse.from(it) }
+//    }
+//
+//    /**
+//     * 取消我的预约（仅允许取消自己的且未开始的预约）
+//     */
+//    @Transactional
+//    fun cancelMyAppointment(user: User, appointmentId: Long) {
+//        val appt = appointmentRepo.findById(appointmentId).orElseThrow { ApiException(404, "预约不存在") }
+//        if (appt.user.id != user.id) throw ApiException(403, "无权取消他人预约")
+//        if (!LocalDateTime.now().isBefore(appt.startTime)) throw ApiException(400, "已开始或已过期的预约不可取消")
+//        if (appt.status == AppointmentStatus.CANCELLED) return
+//
+//        appt.status = AppointmentStatus.CANCELLED
+//        appt.updatedAt = LocalDateTime.now()
+//        appointmentRepo.save(appt)
+//    }
 
     @Transactional
     fun createReview(user: User, req: CreateReviewRequest): Review {
