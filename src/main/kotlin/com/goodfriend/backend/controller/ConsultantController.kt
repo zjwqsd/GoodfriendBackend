@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 import com.goodfriend.backend.dto.AppointmentResponse
+import com.goodfriend.backend.dto.CancelAppointmentRequest
 import com.goodfriend.backend.dto.ReviewResponse
 import com.goodfriend.backend.dto.ConsultantReviewStatsResponse
 
@@ -77,6 +78,44 @@ class ConsultantController(
     ): ResponseEntity<List<AppointmentResponse>> {
         val consultant = currentRoleService.getCurrentConsultant(request)
         return ResponseEntity.ok(consultantService.listAppointmentsOf(consultant))
+    }
+
+    @DeleteMapping("/appointments/{id}")
+    @ConsultantOnly
+    fun cancelMyAppointment(
+        request: HttpServletRequest,
+        @PathVariable id: Long,
+        @RequestParam(required = false) reason: String?,
+        @RequestHeader("Authorization") authHeader: String?
+    ): ResponseEntity<Void> {
+        val consultant = currentRoleService.getCurrentConsultant(request)
+        consultantService.cancelMyAppointment(consultant, id, reason)
+        return ResponseEntity.noContent().build() // 204，无响应体，符合你们的 REST 约定
+    }
+
+    @PostMapping("/appointments/{id}/cancel")
+    @ConsultantOnly
+    fun cancelMyAppointmentBody(
+        request: HttpServletRequest,
+        @PathVariable id: Long,
+        @RequestBody(required = false) body: CancelAppointmentRequest?,
+        @RequestHeader("Authorization") authHeader: String?
+    ): ResponseEntity<Void> {
+        val consultant = currentRoleService.getCurrentConsultant(request)
+        consultantService.cancelMyAppointment(consultant, id, body?.reason)
+        return ResponseEntity.noContent().build()
+    }
+
+    @PostMapping("/appointments/{id}/confirm")
+    @ConsultantOnly
+    fun confirmMyAppointment(
+        request: HttpServletRequest,
+        @PathVariable id: Long,
+        @RequestHeader("Authorization") authHeader: String?
+    ): ResponseEntity<Void> {
+        val consultant = currentRoleService.getCurrentConsultant(request)
+        consultantService.confirmMyAppointment(consultant, id)
+        return ResponseEntity.noContent().build() // 204，无响应体
     }
 
     @GetMapping("/reviews")

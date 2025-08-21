@@ -8,12 +8,14 @@ import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
 import java.time.LocalDateTime
+import java.util.Optional
 
 interface AppointmentRepository : JpaRepository<Appointment, Long> {
 
     fun findByUserOrderByStartTimeDesc(user: User): List<Appointment>
     fun findByConsultantOrderByStartTimeDesc(consultant: Consultant): List<Appointment>
 
+    fun findByIdAndConsultant(id: Long, consultant: Consultant): Optional<Appointment>
 
     @Query(
         """

@@ -53,3 +53,5 @@ data class AppointmentResponse(
         }
     }
 }
+
+data class CancelAppointmentRequest(val reason: String? = null)

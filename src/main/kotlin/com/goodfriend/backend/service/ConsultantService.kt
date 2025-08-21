@@ -1,6 +1,7 @@
 package com.goodfriend.backend.service
 
 import com.goodfriend.backend.data.*
+import com.goodfriend.backend.data.AppointmentStatus.*
 import com.goodfriend.backend.dto.AppointmentResponse
 import com.goodfriend.backend.dto.UpdateConsultantRequest
 import com.goodfriend.backend.exception.ApiException
@@ -170,6 +171,74 @@ class ConsultantService(
                 testResults = recentMap[a.user.id] ?: emptyList()
             )
         }
+    }
+
+    @Transactional
+    fun cancelMyAppointment(consultant: Consultant, appointmentId: Long, reason: String?) {
+        // 确保只能操作“自己的预约”
+        val appt = appointmentRepo.findByIdAndConsultant(appointmentId, consultant)
+            .orElseThrow { ApiException(404, "预约不存在") }
+
+        // 业务校验：不可重复取消/已完成不可取消/已开始不可取消
+        when (appt.status) {
+            AppointmentStatus.CANCELLED_BY_CONSULTANT,
+            AppointmentStatus.CANCELLED_BY_USER ->
+                throw ApiException(400, "该预约已被取消")
+            AppointmentStatus.COMPLETED ->
+                throw ApiException(400, "已完成的预约不可取消")
+            else -> { /* 继续 */ }
+        }
+
+        val now = LocalDateTime.now()
+        if (!appt.startTime.isAfter(now)) {
+            throw ApiException(400, "已开始或已结束的预约不可取消")
+        }
+
+        // 如需强约束“距开始 < 24h 不可取消”，可放开下面一行
+        // if (appt.startTime.isBefore(now.plusHours(24))) throw ApiException(400, "距开始不足24小时不可取消")
+
+        appt.status = AppointmentStatus.CANCELLED_BY_CONSULTANT
+        // 若实体有以下字段则赋值（没有就删掉这两行或按你们实体名修改）
+        appt.cancelReason = reason?.takeIf { it.isNotBlank() }
+        appt.updatedAt = now
+
+        appointmentRepo.save(appt)
+
+        // TODO: 如需通知来访者（短信/站内信/邮件）、回收时段、退款等，可在此处触发
+    }
+
+    @Transactional
+    fun confirmMyAppointment(consultant: Consultant, appointmentId: Long) {
+        val appt = appointmentRepo.findByIdAndConsultant(appointmentId, consultant)
+            .orElseThrow { ApiException(404, "预约不存在") }
+
+        // 业务校验：只能从 PENDING -> CONFIRMED
+        when (appt.status) {
+            PENDING -> { /* 允许确认 */ }
+            CONFIRMED ->
+                throw ApiException(400, "该预约已确认")
+            COMPLETED ->
+                throw ApiException(400, "已完成的预约不可确认")
+            CANCELLED_BY_USER,
+            CANCELLED_BY_CONSULTANT ->
+                throw ApiException(400, "已取消的预约不可确认")
+
+            CANCELLED -> TODO()
+        }
+
+        val now = LocalDateTime.now()
+        if (!appt.startTime.isAfter(now)) {
+            throw ApiException(400, "已开始或已结束的预约不可确认")
+        }
+
+        appt.status = AppointmentStatus.CONFIRMED
+        // 如实体存在 confirmedAt/updatedAt 字段可一并维护
+        // appt.confirmedAt = now
+        appt.updatedAt = now
+
+        appointmentRepo.save(appt)
+
+        // TODO: 如需通知来访者/发站内信/短信、同步日程、锁定时段等，可在此处触发
     }
 
     @Transactional(readOnly = true)

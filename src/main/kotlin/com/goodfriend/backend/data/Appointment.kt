@@ -40,6 +40,8 @@ data class Appointment(
     @Column(name = "created_at", updatable = false, nullable = false)
     val createdAt: LocalDateTime = LocalDateTime.now(),
 
+    var cancelReason: String? = null,
+
     @Column(name = "updated_at", nullable = false)
     var updatedAt: LocalDateTime = LocalDateTime.now()
 )
@@ -47,5 +49,8 @@ data class Appointment(
 enum class AppointmentStatus {
     PENDING,      // 待确认（默认）
     CONFIRMED,    // 已确认（可留待后台或咨询师端确认）
-    CANCELLED     // 已取消
+    COMPLETED,
+    CANCELLED,     // 已取消
+    CANCELLED_BY_USER,
+    CANCELLED_BY_CONSULTANT
 }
