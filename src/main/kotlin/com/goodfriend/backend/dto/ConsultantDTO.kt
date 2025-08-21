@@ -19,7 +19,7 @@ data class ConsultantApplicationDTO(
     val major: String,
     val licenseNumber:String?,
     val experienceYears: Int,
-    val specialty: List<String>,
+    val specialty: List<String> ,
     val reason: String,
     val bio: String,
     val status: ApplicationStatus,
@@ -100,7 +100,7 @@ data class ConsultantDTO(
     val gender: Gender?,                 // 可空
     val location: String?,               // "北京·朝阳" 之类
     val level: String?,                  // 可空
-    val specialty: List<String>?,        // 可空
+    val specialty: List<String> = emptyList(),        // 可空
     val rating: Double,
     val avatar: String?,                 // 可空
     val pricePerHour: Int,
@@ -127,7 +127,9 @@ data class ConsultantDTO(
                 gender = c.gender,
                 location = c.location,
                 level = c.level,
-                specialty = c.specialty,
+                specialty = c.specialty
+                    ?.filter { it.isNotBlank() && it != "未填写" }
+                    ?: emptyList(),
                 rating = c.rating,
                 avatar = c.avatar,
                 pricePerHour = c.pricePerHour,
@@ -177,7 +179,7 @@ data class ConsultantProfileResponse(
     val gender: Gender,
     val location: String?,
     val level: String?,
-    val specialty: List<String>?,
+    val specialty: List<String> = emptyList(),
     val experienceYears: Int,
     val consultationCount: Int,
     val trainingHours: Int,
@@ -201,7 +203,9 @@ data class ConsultantProfileResponse(
                 gender = c.gender,
                 location = c.location,             // 允许为 null
                 level = c.level,                   // 允许为 null
-                specialty = c.specialty,           // 允许为 null
+                specialty = c.specialty
+                    ?.filter { it.isNotBlank() && it != "未填写" }
+                    ?: emptyList(),
                 experienceYears = c.experienceYears,
                 consultationCount = c.consultationCount,
                 trainingHours = c.trainingHours,

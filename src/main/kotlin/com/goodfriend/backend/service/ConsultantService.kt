@@ -37,7 +37,7 @@ class ConsultantService(
             gender = Gender.UNKNOWN,
             location = null,
             level = "普通咨询师",
-            specialty = null,
+            specialty = emptyList(),
             rating = 0.0,
             avatar = "consultant/avatars/default.jpg",
             experienceYears = 0,
@@ -51,7 +51,8 @@ class ConsultantService(
         req.name?.let { consultant.name = it }
         req.gender?.let { consultant.gender = it }
         req.location?.let { consultant.location = it }
-        req.specialty?.let { consultant.specialty = it }
+        // updateConsultantInfo：过滤空白项
+        req.specialty?.let { list -> consultant.specialty = list.filter { it.isNotBlank() } }
         req.experienceYears?.let { consultant.experienceYears = it }
         req.consultationCount?.let { consultant.consultationCount = it }
         req.trainingHours?.let { consultant.trainingHours = it }
