@@ -99,6 +99,18 @@ class UserController(
         return ResponseEntity.ok(results)
     }
 
+    @DeleteMapping("/tests/{id}")
+    @UserOnly
+    fun deleteTestResult(
+        request: HttpServletRequest,
+        @PathVariable id: Long,
+        @RequestHeader("Authorization") authHeader: String?
+    ): ResponseEntity<Void> {
+        val user = currentRoleService.getCurrentUser(request)
+        userService.deleteMyTestResult(user, id)
+        return ResponseEntity.noContent().build()
+    }
+
 
     @GetMapping("/appointments")
     @UserOnly
@@ -111,6 +123,7 @@ class UserController(
     @UserOnly
     fun createMyAppointment(
         request: HttpServletRequest,
+        @RequestHeader("Authorization", required = true) authorization: String,
         @Valid @RequestBody req: CreateAppointmentRequest
     ): ResponseEntity<AppointmentResponse> {
         val user = currentRoleService.getCurrentUser(request)

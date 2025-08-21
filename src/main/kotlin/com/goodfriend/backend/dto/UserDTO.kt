@@ -33,7 +33,7 @@ data class UpdateUserRequest(
 data class UserProfileResponse(
     val id: Long,
     val phone: String,
-    val name: String? = null,  // 改为可空类型
+    val name: String = "",  // 改为可空类型
     val avatar: String? = null,  // 改为可空类型
     val birthday: LocalDate? = null,
     val age: Int? = null,  // 改为可空类型
@@ -42,11 +42,14 @@ data class UserProfileResponse(
     val hobby: String? = null  // 改为可空类型
 ) {
     companion object {
+        private const val DEFAULT_NAME = "开发用户"
         fun from(user: User): UserProfileResponse {
+            val displayName = user.name
+                .takeUnless { it.isBlank() || it == DEFAULT_NAME } ?: ""
             return UserProfileResponse(
                 id = user.id,
                 phone = user.phone,
-                name = if (user.name.isBlank()) null else user.name,  // 如果为空字符串，返回 null
+                name = displayName,  // 如果为空字符串，返回 null
                 avatar = if (user.avatar == "user/avatars/default.jpg") null else user.avatar,  // 如果是默认头像，返回 null
                 birthday = user.birthday,
                 age = if (user.age <= 0) null else user.age,  // 如果年龄 <= 0，返回 null
