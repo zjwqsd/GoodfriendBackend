@@ -25,6 +25,9 @@ data class CreateAppointmentRequest(
 
 data class AppointmentResponse(
     val id: Long,
+    val userId: Long,
+    val userName: String,
+    val userAvatar: String,
     val consultantId: Long,
     val consultantName: String,
     val startTime: String,
@@ -41,6 +44,9 @@ data class AppointmentResponse(
 
             return AppointmentResponse(
                 id = a.id,
+                userId = a.user.id,
+                userName = a.user.name,
+                userAvatar = a.user.avatar,
                 consultantId = a.consultant.id,
                 consultantName = a.consultant.name,
                 startTime = a.startTime.toString(),
