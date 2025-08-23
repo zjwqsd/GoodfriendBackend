@@ -4,6 +4,8 @@ import com.goodfriend.backend.data.*
 import com.goodfriend.backend.dto.AppointmentResponse
 import com.goodfriend.backend.dto.CreateAppointmentRequest
 import com.goodfriend.backend.exception.ApiException
+import com.goodfriend.backend.exception.AppointmentNotFoundOrInvisibleException
+import com.goodfriend.backend.exception.AppointmentStateConflictException
 import com.goodfriend.backend.repository.AppointmentRepository
 import com.goodfriend.backend.repository.ConsultantRepository
 import org.springframework.stereotype.Service
@@ -50,15 +52,23 @@ class AppointmentService(
     }
 
     @Transactional
-    fun cancelMyAppointment(user: User, appointmentId: Long) {
-        val appt = appointmentRepo.findById(appointmentId)
-            .orElseThrow { ApiException(404, "预约不存在") }
-        if (appt.user.id != user.id) throw ApiException(403, "无权取消他人预约")
-        if (!LocalDateTime.now().isBefore(appt.startTime)) throw ApiException(400, "已开始或已过期的预约不可取消")
+    fun cancelMyAppointment(user: User, appointmentId: Long, reason: String? = null) {
+        val appt = appointmentRepo.findByIdAndUserId(appointmentId, user.id)
+            ?: throw AppointmentNotFoundOrInvisibleException() as Throwable // 404
+
+        // 已取消 -> 幂等，直接返回，控制器回 204
         if (appt.status == AppointmentStatus.CANCELLED) return
 
+        val now = LocalDateTime.now() // 生产建议注入 Clock，便于测试
+        // 已开始或已过期 -> 409
+        if (!now.isBefore(appt.startTime)) {
+            throw AppointmentStateConflictException("Appointment already started or expired") as Throwable
+        }
+
         appt.status = AppointmentStatus.CANCELLED
-        appt.updatedAt = LocalDateTime.now()
+        appt.cancelReason = reason
+        appt.updatedAt = now
         appointmentRepo.save(appt)
     }
+
 }

@@ -17,6 +17,7 @@ interface AppointmentRepository : JpaRepository<Appointment, Long> {
 
     fun findByIdAndConsultant(id: Long, consultant: Consultant): Optional<Appointment>
 
+    fun findByIdAndUserId(id: Long, userId: Long): Appointment?   // 不可见时返回 null
     @Query(
         """
         SELECT CASE WHEN COUNT(a) > 0 THEN true ELSE false END

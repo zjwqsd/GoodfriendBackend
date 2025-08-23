@@ -60,4 +60,7 @@ data class AppointmentResponse(
     }
 }
 
-data class CancelAppointmentRequest(val reason: String? = null)
+data class CancelAppointmentRequest(
+    @field:Size(max = 200, message = "reason too long")  // 超过 200 触发 422
+    val reason: String? = null
+)

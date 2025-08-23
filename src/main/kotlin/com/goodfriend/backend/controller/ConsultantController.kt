@@ -80,25 +80,25 @@ class ConsultantController(
         return ResponseEntity.ok(consultantService.listAppointmentsOf(consultant))
     }
 
-    @DeleteMapping("/appointments/{id}")
-    @ConsultantOnly
-    fun cancelMyAppointment(
-        request: HttpServletRequest,
-        @PathVariable id: Long,
-        @RequestParam(required = false) reason: String?,
-        @RequestHeader("Authorization") authHeader: String?
-    ): ResponseEntity<Void> {
-        val consultant = currentRoleService.getCurrentConsultant(request)
-        consultantService.cancelMyAppointment(consultant, id, reason)
-        return ResponseEntity.noContent().build() // 204，无响应体，符合你们的 REST 约定
-    }
+//    @DeleteMapping("/appointments/{id}")
+//    @ConsultantOnly
+//    fun cancelMyAppointment(
+//        request: HttpServletRequest,
+//        @PathVariable id: Long,
+//        @RequestParam(required = false) reason: String?,
+//        @RequestHeader("Authorization") authHeader: String?
+//    ): ResponseEntity<Void> {
+//        val consultant = currentRoleService.getCurrentConsultant(request)
+//        consultantService.cancelMyAppointment(consultant, id, reason)
+//        return ResponseEntity.noContent().build() // 204，无响应体，符合你们的 REST 约定
+//    }
 
     @PostMapping("/appointments/{id}/cancel")
     @ConsultantOnly
     fun cancelMyAppointmentBody(
         request: HttpServletRequest,
         @PathVariable id: Long,
-        @RequestBody(required = false) body: CancelAppointmentRequest?,
+        @Valid @RequestBody(required = false) body: CancelAppointmentRequest?,
         @RequestHeader("Authorization") authHeader: String?
     ): ResponseEntity<Void> {
         val consultant = currentRoleService.getCurrentConsultant(request)
