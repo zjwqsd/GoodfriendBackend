@@ -52,6 +52,11 @@ class CurrentRoleService(
         } catch (e: Exception) {
             null
         }
+
+    }
+    fun isAdmin(request: HttpServletRequest): Boolean {
+        val auth = org.springframework.security.core.context.SecurityContextHolder.getContext().authentication
+        return auth?.authorities?.any { it.authority == "ADMIN" || it.authority == "ROLE_ADMIN" } == true
     }
 
 }

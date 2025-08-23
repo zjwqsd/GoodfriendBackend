@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.server.ResponseStatusException
 import org.springframework.http.HttpStatus
+import org.springframework.security.access.prepost.PreAuthorize
 
 
 @RestController
@@ -75,16 +76,19 @@ class WishController(
     /**
      * 4) 删除心愿心语（仅作者本人可删）
      */
+
     @DeleteMapping("/{id}")
-    @UserOnly
+    @PreAuthorize("hasAnyAuthority('USER','CONSULTANT','ADMIN')")
     fun delete(
         request: HttpServletRequest,
         @RequestHeader(HttpHeaders.AUTHORIZATION) authorization: String,
         @PathVariable id: Long
     ): ResponseEntity<Void> {
 
-        val user = currentRoleService.getCurrentUser(request)
-        wishService.deleteWish(user, id)
+        val isAdmin = currentRoleService.isAdmin(request)   // ← 需要在 CurrentRoleService 提供该方法
+        val currentUser = if (isAdmin) null else currentRoleService.getCurrentUser(request)
+
+        wishService.deleteWish(currentUser, id, isAdmin)
         return ResponseEntity.noContent().build()
     }
 

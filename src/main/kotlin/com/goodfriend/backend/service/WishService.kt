@@ -65,9 +65,16 @@ class WishService(
     }
 
     @Transactional
-    fun deleteWish(current: User, wishId: Long) {
+    fun deleteWish(current: User?, wishId: Long, isAdmin: Boolean) {
         val wish = wishRepo.findById(wishId).orElseThrow { ApiException(404, "心语不存在") }
-        if (wish.user.id != current.id) throw ApiException(403, "无权删除他人的心语")
+
+        if (!isAdmin) {
+            // 非管理员，必须是本人
+            if (current == null || wish.user.id != current.id) {
+                throw ApiException(403, "无权删除他人的心语")
+            }
+        }
+
         // 先清理点赞记录，避免外键约束问题
         wishLikeRepo.deleteByWish(wish)
         wishRepo.delete(wish)
