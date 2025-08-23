@@ -36,3 +36,22 @@ class Wish(
         updatedAt = LocalDateTime.now()
     }
 }
+
+@Entity
+@Table(
+    name = "wish_inbox_states",
+    uniqueConstraints = [UniqueConstraint(name = "uk_wish_inbox_user", columnNames = ["user_id"])],
+    indexes = [Index(name = "idx_wish_inbox_last_checked_at", columnList = "last_checked_at")]
+)
+class WishInboxState(
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    var id: Long = 0,
+
+    @OneToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "user_id", nullable = false, unique = true)
+    var user: User,
+
+    @Column(name = "last_checked_at", nullable = false)
+    var lastCheckedAt: LocalDateTime = LocalDateTime.now()
+)

@@ -2,14 +2,20 @@ package com.goodfriend.backend.controller
 
 import com.goodfriend.backend.dto.CreateWishRequest
 import com.goodfriend.backend.dto.ToggleLikeResponse
+import com.goodfriend.backend.dto.UnreadCountResponse
 import com.goodfriend.backend.dto.WishResponse
 import com.goodfriend.backend.security.CurrentRoleService
 import com.goodfriend.backend.security.annotation.UserOnly
 import com.goodfriend.backend.service.WishService
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
+import org.springframework.http.HttpHeaders
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.*
+import org.springframework.web.server.ResponseStatusException
+import org.springframework.http.HttpStatus
+
 
 @RestController
 @RequestMapping("/api/wishes")
@@ -26,6 +32,7 @@ class WishController(
     @UserOnly
     fun list(
         request: HttpServletRequest,
+        @RequestHeader(HttpHeaders.AUTHORIZATION) authorization: String,
         @RequestParam(defaultValue = "0") page: Int,
         @RequestParam(defaultValue = "20") size: Int
     ): ResponseEntity<List<WishResponse>> {
@@ -41,6 +48,7 @@ class WishController(
     @UserOnly
     fun create(
         request: HttpServletRequest,
+        @RequestHeader(HttpHeaders.AUTHORIZATION) authorization: String,
         @Valid @RequestBody req: CreateWishRequest
     ): ResponseEntity<WishResponse> {
         val user = currentRoleService.getCurrentUser(request)
@@ -56,6 +64,7 @@ class WishController(
     @UserOnly
     fun toggleLike(
         request: HttpServletRequest,
+        @RequestHeader(HttpHeaders.AUTHORIZATION) authorization: String,
         @PathVariable id: Long
     ): ResponseEntity<ToggleLikeResponse> {
         val user = currentRoleService.getCurrentUser(request)
@@ -70,10 +79,35 @@ class WishController(
     @UserOnly
     fun delete(
         request: HttpServletRequest,
+        @RequestHeader(HttpHeaders.AUTHORIZATION) authorization: String,
         @PathVariable id: Long
     ): ResponseEntity<Void> {
+
         val user = currentRoleService.getCurrentUser(request)
         wishService.deleteWish(user, id)
+        return ResponseEntity.noContent().build()
+    }
+
+    @GetMapping("/unread-count")
+    @UserOnly
+    fun unreadCount(
+        request: HttpServletRequest,
+        @RequestHeader(HttpHeaders.AUTHORIZATION) authorization: String
+    ): ResponseEntity<UnreadCountResponse> {
+        val user = currentRoleService.getCurrentUser(request)
+        val count = wishService.getUnreadCount(user)
+        return ResponseEntity.ok(UnreadCountResponse(count))
+    }
+
+    /** 将心愿流全部标记为已读 */
+    @PostMapping("/mark-read")
+    @UserOnly
+    fun markAllRead(
+        request: HttpServletRequest,
+        @RequestHeader(HttpHeaders.AUTHORIZATION) authorization: String
+    ): ResponseEntity<Void> {
+        val user = currentRoleService.getCurrentUser(request)
+        wishService.markAllRead(user)
         return ResponseEntity.noContent().build()
     }
 }
