@@ -98,13 +98,18 @@ class ConsultantController(
     fun cancelMyAppointmentBody(
         request: HttpServletRequest,
         @PathVariable id: Long,
-        @Valid @RequestBody(required = false) body: CancelAppointmentRequest?,
-        @RequestHeader("Authorization") authHeader: String?
+        @Valid @RequestBody body: CancelAppointmentRequest
     ): ResponseEntity<Void> {
         val consultant = currentRoleService.getCurrentConsultant(request)
-        consultantService.cancelMyAppointment(consultant, id, body?.reason)
+        consultantService.cancelMyAppointment(consultant, id, body.reason)
         return ResponseEntity.noContent().build()
     }
+    // DTO
+    data class CancelAppointmentRequest(
+        @field:jakarta.validation.constraints.NotBlank
+        val reason: String
+    )
+
 
     @PostMapping("/appointments/{id}/confirm")
     @ConsultantOnly

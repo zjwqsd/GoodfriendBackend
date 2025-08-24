@@ -4,7 +4,10 @@ import jakarta.persistence.*
 import java.time.LocalDateTime
 
 @Entity
-@Table(name = "wishes", indexes = [Index(name = "idx_wish_created_at", columnList = "created_at DESC")])
+@Table(name = "wishes", indexes = [Index(name = "idx_wish_created_at", columnList = "created_at DESC"),
+    Index(name = "idx_wish_quote_wish_id", columnList = "quote_wish_id")
+    ]
+)
 class Wish(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -29,12 +32,18 @@ class Wish(
     var createdAt: LocalDateTime = LocalDateTime.now(),
 
     @Column(name = "updated_at", nullable = false)
-    var updatedAt: LocalDateTime = LocalDateTime.now()
+    var updatedAt: LocalDateTime = LocalDateTime.now(),
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "quote_wish_id", foreignKey = ForeignKey(name = "fk_wish_quote"))
+    var quoteWish: Wish? = null
 ) {
     @PreUpdate
     fun onUpdate() {
         updatedAt = LocalDateTime.now()
     }
+
+
 }
 
 @Entity

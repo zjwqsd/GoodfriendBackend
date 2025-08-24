@@ -3,6 +3,7 @@ package com.goodfriend.backend.controller
 import com.goodfriend.backend.dto.CreateWishRequest
 import com.goodfriend.backend.dto.ToggleLikeResponse
 import com.goodfriend.backend.dto.UnreadCountResponse
+import com.goodfriend.backend.dto.WishAuthorCardResponse
 import com.goodfriend.backend.dto.WishResponse
 import com.goodfriend.backend.security.CurrentRoleService
 import com.goodfriend.backend.security.annotation.UserOnly
@@ -114,4 +115,17 @@ class WishController(
         wishService.markAllRead(user)
         return ResponseEntity.noContent().build()
     }
+
+    @GetMapping("/{id}/author")
+    @UserOnly
+    fun getAuthorCard(
+        request: HttpServletRequest,
+        @RequestHeader(HttpHeaders.AUTHORIZATION) authorization: String,
+        @PathVariable id: Long
+    ): ResponseEntity<WishAuthorCardResponse> {
+        val current = currentRoleService.getCurrentUser(request)
+        val res = wishService.getAuthorCard(current, id)
+        return ResponseEntity.ok(res)
+    }
+
 }

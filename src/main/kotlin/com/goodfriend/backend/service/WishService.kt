@@ -6,6 +6,7 @@ import com.goodfriend.backend.data.User
 import com.goodfriend.backend.data.WishInboxState
 import com.goodfriend.backend.dto.CreateWishRequest
 import com.goodfriend.backend.dto.ToggleLikeResponse
+import com.goodfriend.backend.dto.WishAuthorCardResponse
 import com.goodfriend.backend.dto.WishResponse
 import com.goodfriend.backend.exception.ApiException
 import com.goodfriend.backend.repository.WishInboxStateRepository
@@ -15,12 +16,15 @@ import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+
 
 @Service
 class WishService(
     private val wishRepo: WishRepository,
     private val wishLikeRepo: WishLikeRepository,
-    private val inboxRepo: WishInboxStateRepository
+    private val inboxRepo: WishInboxStateRepository,
+
 ) {
 
     @Transactional(readOnly = true)
@@ -37,12 +41,26 @@ class WishService(
 
     @Transactional
     fun createWish(current: User, req: CreateWishRequest): WishResponse {
+        // 简单业务校验：内容、图片、引用三者至少有一个
+        val content = req.content.trim()
+        val images = req.images.map { it.trim() }.filter { it.isNotBlank() }
+
+        if (content.isBlank() && images.isEmpty() && req.quoteId == null) {
+            throw ApiException(400, "内容、图片、引用至少提供一项")
+        }
+
+        val quoted: Wish? = req.quoteId?.let { id ->
+            wishRepo.findById(id).orElseThrow { ApiException(404, "被引用的心语不存在") }
+        }
+
         val wish = Wish(
             user = current,
-            content = req.content.trim(),
-            images = req.images?.map { it.trim() }?.filter { it.isNotBlank() }?.toMutableList() ?: mutableListOf(),
-            anonymous = req.anonymous
+            content = content,
+            images = images.toMutableList(),
+            anonymous = req.anonymous,
+            quoteWish = quoted
         )
+
         val saved = wishRepo.save(wish)
         return toDto(saved, likeCount = 0, likedByMe = false, current = current)
     }
@@ -69,14 +87,16 @@ class WishService(
         val wish = wishRepo.findById(wishId).orElseThrow { ApiException(404, "心语不存在") }
 
         if (!isAdmin) {
-            // 非管理员，必须是本人
             if (current == null || wish.user.id != current.id) {
                 throw ApiException(403, "无权删除他人的心语")
             }
         }
 
-        // 先清理点赞记录，避免外键约束问题
+        // 先清理点赞记录
         wishLikeRepo.deleteByWish(wish)
+        // 解除其他心语对本条的引用，避免外键约束
+        wishRepo.clearQuotesOf(wish)
+
         wishRepo.delete(wish)
     }
 
@@ -110,7 +130,35 @@ class WishService(
             createdAt = w.createdAt.toString(),
             likeCount = likeCount,
             likedByMe = likedByMe,
-            mine = (w.user.id == current.id)
+            mine = (w.user.id == current.id),
+            quoteId = w.quoteWish?.id
+        )
+    }
+
+    companion object {
+        private const val DEFAULT_NAME = "开发用户"
+        private val DATE_FMT: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+    }
+    
+    @Transactional(readOnly = true)
+    fun getAuthorCard(current: User, wishId: Long): WishAuthorCardResponse {
+        val wish = wishRepo.findById(wishId).orElseThrow { ApiException(404, "心语不存在") }
+
+        // 匿名：不返回任何个人信息
+        if (wish.anonymous) {
+            return WishAuthorCardResponse(anonymous = true)
+        }
+
+        val author = wish.user
+        val displayName = author.name.let { n ->
+            if (n.isBlank() || n == DEFAULT_NAME) null else n
+        }
+        val joinDate = author.createdAt.toLocalDate().format(DATE_FMT) // "yyyy-MM-dd"
+
+        return WishAuthorCardResponse(
+            anonymous = false,
+            name = displayName,
+            joinDate = joinDate  // 序列化为 jointDate
         )
     }
 }

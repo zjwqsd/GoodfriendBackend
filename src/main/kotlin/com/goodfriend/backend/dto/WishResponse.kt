@@ -8,5 +8,10 @@ data class WishResponse(
     val createdAt: String,
     val likeCount: Long,
     val likedByMe: Boolean,
-    val mine: Boolean
+    val mine: Boolean,
+    val quoteId: Long?
 )
+
+
+
+
