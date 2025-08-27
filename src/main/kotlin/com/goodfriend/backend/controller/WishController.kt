@@ -6,6 +6,7 @@ import com.goodfriend.backend.dto.UnreadCountResponse
 import com.goodfriend.backend.dto.WishAuthorCardResponse
 import com.goodfriend.backend.dto.WishResponse
 import com.goodfriend.backend.security.CurrentRoleService
+import com.goodfriend.backend.security.Role
 import com.goodfriend.backend.security.annotation.UserOnly
 import com.goodfriend.backend.service.WishService
 import jakarta.servlet.http.HttpServletRequest
@@ -13,10 +14,6 @@ import jakarta.validation.Valid
 import org.springframework.http.HttpHeaders
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
-import org.springframework.web.bind.annotation.*
-import org.springframework.web.server.ResponseStatusException
-import org.springframework.http.HttpStatus
-import org.springframework.security.access.prepost.PreAuthorize
 
 
 @RestController
@@ -79,14 +76,13 @@ class WishController(
      */
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyAuthority('USER','CONSULTANT','ADMIN')")
     fun delete(
         request: HttpServletRequest,
         @RequestHeader(HttpHeaders.AUTHORIZATION) authorization: String,
         @PathVariable id: Long
     ): ResponseEntity<Void> {
 
-        val isAdmin = currentRoleService.isAdmin(request)   // ← 需要在 CurrentRoleService 提供该方法
+        val isAdmin = currentRoleService.getCurrentRole(request) == Role.ADMIN   // ← 需要在 CurrentRoleService 提供该方法
         val currentUser = if (isAdmin) null else currentRoleService.getCurrentUser(request)
 
         wishService.deleteWish(currentUser, id, isAdmin)

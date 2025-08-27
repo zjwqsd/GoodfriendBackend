@@ -219,11 +219,4 @@ class CertificationListConverter : AttributeConverter<List<Certification>, Strin
     }
 }
 
-@Entity
-data class Admin(
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Long = 0,
-    val username: String,
-    val password: String
-)
+
