@@ -8,6 +8,9 @@ import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import org.springframework.http.MediaType
+import org.springframework.web.multipart.MultipartFile
+
+import java.util.*
 
 typealias StaticResourceTree = Map<String, Map<String, List<StaticResourceDTO>>>
 
@@ -66,6 +69,22 @@ class StaticResourceController(
     ): ResponseEntity<Void> {
         staticService.deleteResource(id)
         return ResponseEntity.noContent().build()
+    }
+
+    @PostMapping("/upload/wish-image")
+    fun uploadWishImage(
+        @RequestPart("file") file: MultipartFile
+    ): StaticResourceDTO {
+        // 生成无点扩展名的基础文件名（StaticResourceService 会自动补扩展名）
+        val base = UUID.randomUUID().toString().replace("-", "")
+        val res = staticService.uploadStaticFile(
+            file = file,
+            scope = "wish",
+            category = "images",
+            filename = base,
+            description = "心语图片"
+        )
+        return StaticResourceDTO.from(res)
     }
 }
 

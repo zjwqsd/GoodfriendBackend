@@ -23,8 +23,7 @@ import java.time.format.DateTimeFormatter
 class WishService(
     private val wishRepo: WishRepository,
     private val wishLikeRepo: WishLikeRepository,
-    private val inboxRepo: WishInboxStateRepository,
-
+    private val inboxRepo: WishInboxStateRepository
 ) {
 
     @Transactional(readOnly = true)
@@ -41,27 +40,33 @@ class WishService(
 
     @Transactional
     fun createWish(current: User, req: CreateWishRequest): WishResponse {
-        // 简单业务校验：内容、图片、引用三者至少有一个
-        val content = req.content.trim()
-        val images = req.images.map { it.trim() }.filter { it.isNotBlank() }
+               // 1) 简单业务校验
+        val content = (req.content ?: "").trim()
 
-        if (content.isBlank() && images.isEmpty() && req.quoteId == null) {
-            throw ApiException(400, "内容、图片、引用至少提供一项")
-        }
 
+                // 2) 不再支持图片
+//                if (req.imageIds.isNotEmpty()) {
+//                        throw ApiException(400, "心语暂不支持图片")
+//                   }
+//                if (content.isBlank() && req.quoteId == null) {
+//            throw ApiException(400, "内容或引用至少提供一项")
+//        }
+
+        // 3) 引用的心语
         val quoted: Wish? = req.quoteId?.let { id ->
             wishRepo.findById(id).orElseThrow { ApiException(404, "被引用的心语不存在") }
         }
 
+        // 4) 持久化
         val wish = Wish(
             user = current,
             content = content,
-            images = images.toMutableList(),
+           images = mutableListOf(), // 现在固定为空
             anonymous = req.anonymous,
             quoteWish = quoted
         )
-
         val saved = wishRepo.save(wish)
+
         return toDto(saved, likeCount = 0, likedByMe = false, current = current)
     }
 
@@ -92,12 +97,16 @@ class WishService(
             }
         }
 
-        // 先清理点赞记录
+        // 先清理点赞记录（避免外键）
         wishLikeRepo.deleteByWish(wish)
-        // 解除其他心语对本条的引用，避免外键约束
+
+        // 解除其他心语对本条的引用（避免自引用外键）
         wishRepo.clearQuotesOf(wish)
 
+        // 删除心语本身
         wishRepo.delete(wish)
+
+        // 不删除静态文件：由资源管理后台决定下线/删除（markValid / deleteResource）
     }
 
     /** 获取未读数量（不会产生写操作；无 state 时按 0 处理） */
@@ -125,7 +134,7 @@ class WishService(
         return WishResponse(
             id = w.id,
             content = w.content,
-            images = w.images.toList(),
+            //images = w.images.toList(),
             anonymous = w.anonymous,
             createdAt = w.createdAt.toString(),
             likeCount = likeCount,
@@ -139,7 +148,7 @@ class WishService(
         private const val DEFAULT_NAME = "开发用户"
         private val DATE_FMT: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
     }
-    
+
     @Transactional(readOnly = true)
     fun getAuthorCard(current: User, wishId: Long): WishAuthorCardResponse {
         val wish = wishRepo.findById(wishId).orElseThrow { ApiException(404, "心语不存在") }

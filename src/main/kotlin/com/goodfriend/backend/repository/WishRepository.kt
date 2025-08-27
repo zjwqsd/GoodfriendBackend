@@ -14,7 +14,8 @@ interface WishRepository : JpaRepository<Wish, Long> {
     fun findByUserOrderByCreatedAtDesc(user: User, pageable: Pageable): List<Wish>
     //fun countByCreatedAtAfterAndUserNot(createdAt: LocalDateTime, user: User): Long
     fun countByCreatedAtAfterAndUserNot(createdAt: LocalDateTime, user: com.goodfriend.backend.data.User): Long
-    @Modifying
-    @Query("update Wish w set w.quoteWish = null where w.quoteWish = :target")
-    fun clearQuotesOf(@Param("target") target: Wish): Int
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("update Wish w set w.quoteWish = null where w.quoteWish = :wish")
+    fun clearQuotesOf(@Param("wish") wish: Wish): Int
 }
